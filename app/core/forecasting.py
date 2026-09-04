@@ -18,6 +18,7 @@ import joblib
 
 from config import PRODUK, MODEL, MODEL_TERBAIK, Z_SCORE, STUDI_KASUS
 from core import features as F
+from data import store
 from data import weather
 
 _DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -78,8 +79,20 @@ def forecast_future(df, product_id, model_key=MODEL_TERBAIK, horizon=None):
     hist_all = _load_history()
     s = (hist_all[hist_all.product_id == product_id]
          .sort_values("date").reset_index(drop=True))
+
+    # Titik reset operasional (T-1): begitu diaktifkan, riwayat dipotong ke
+    # baris date >= mulai_operasional -- memutus rantai posisional lag/rolling
+    # dari data training sintetis lama (lihat data/record_sales.py). Sebelum
+    # diaktifkan, perilaku sama seperti sekarang (pakai seluruh riwayat).
+    mulai_operasional = store.get_tanggal_mulai_operasional()
+    if mulai_operasional is not None:
+        s = s[s.date >= mulai_operasional].reset_index(drop=True)
+        last_date = s["date"].max() if not s.empty else (
+            mulai_operasional - pd.Timedelta(days=1))
+    else:
+        last_date = s["date"].max()
+
     qty_hist = list(s["qty_sold"].astype(float).values)
-    last_date = s["date"].max()
 
     # used_climatology: disiapkan untuk Minggu 3/T-19 (tampilkan status ke
     # pengguna kalau sistem sedang memakai cadangan klimatologi, bukan
@@ -87,7 +100,12 @@ def forecast_future(df, product_id, model_key=MODEL_TERBAIK, horizon=None):
     fx, used_climatology = weather.future_exogenous(
         last_date + pd.Timedelta(days=1), horizon)
 
-    if model is None:
+    if model is None or len(qty_hist) == 0:
+        # len(qty_hist) == 0: baru saja reset operasional, belum ada satu
+        # pun catatan asli -- build_feature_row() butuh minimal 1 elemen
+        # (s[0] dipakai saat riwayat lebih pendek dari lag/window). Pakai
+        # base demand datar sampai hari pertama tercatat, sama seperti
+        # jalur "model belum tersedia" yang sudah ada.
         mu = PRODUK[product_id]["mu"]
         yhat = np.full(HORIZON, mu, dtype=float)
     else:

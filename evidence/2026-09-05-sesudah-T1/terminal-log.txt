@@ -1,0 +1,260 @@
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+2026-09-05 01:17:30.955 Uvicorn server started on :::8501
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.1.100:8501
+  External URL: http://140.213.190.29:8501
+
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+2026-09-05 01:17:47.246 Uncaught app execution
+Traceback (most recent call last):
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 136, in exec_func_with_error_handling
+    result = func()
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 827, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\app.py", line 72, in <module>
+    PAGES[halaman].render(df)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\views\overview.py", line 61, in render
+    st.plotly_chart(charts.forecast_chart(hist, fut, PRODUK[pid_utama]["satuan"]),
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\components\charts.py", line 48, in forecast_chart
+    bridge_x = [history.date.iloc[-1], future.date.iloc[0]]
+                ~~~~~~~~~~~~~~~~~^^^^
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\pandas\core\indexing.py", line 1207, in __getitem__
+    return self._getitem_axis(maybe_callable, axis=axis)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\pandas\core\indexing.py", line 1773, in _getitem_axis
+    self._validate_integer(key, axis)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\pandas\core\indexing.py", line 1706, in _validate_integer
+    raise IndexError("single positional indexer is out-of-bounds")
+IndexError: single positional indexer is out-of-bounds
+2026-09-05 01:17:51.014 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:17:51.019 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:17:51.030 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:17:51.093 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:17:51.101 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:17:51.167 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:18:00.680 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:18:00.686 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:18:00.696 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:18:00.749 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:18:00.755 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:18:00.821 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:18:31.415 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:18:31.421 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:18:31.433 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:18:31.493 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:18:31.500 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:18:31.564 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+fetch_rainfall_forecast: gagal ambil data Open-Meteo (ReadTimeout: HTTPSConnectionPool(host='api.open-meteo.com', port=443): Read timed out. (read timeout=8)) -- pakai klimatologi sebagai cadangan.
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+2026-09-05 01:18:41.415 Uncaught app execution
+Traceback (most recent call last):
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 136, in exec_func_with_error_handling
+    result = func()
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 827, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\app.py", line 72, in <module>
+    PAGES[halaman].render(df)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\views\overview.py", line 61, in render
+    st.plotly_chart(charts.forecast_chart(hist, fut, PRODUK[pid_utama]["satuan"]),
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\components\charts.py", line 48, in forecast_chart
+    bridge_x = [history.date.iloc[-1], future.date.iloc[0]]
+                ~~~~~~~~~~~~~~~~~^^^^
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\pandas\core\indexing.py", line 1207, in __getitem__
+    return self._getitem_axis(maybe_callable, axis=axis)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\pandas\core\indexing.py", line 1773, in _getitem_axis
+    self._validate_integer(key, axis)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\pandas\core\indexing.py", line 1706, in _validate_integer
+    raise IndexError("single positional indexer is out-of-bounds")
+IndexError: single positional indexer is out-of-bounds
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+C:\Users\Arif\dss-umkm-project\dss-umkm-ciwidey\app\venv\Lib\site-packages\sklearn\utils\validation.py:2691: UserWarning: X does not have valid feature names, but StandardScaler was fitted with feature names
+  warnings.warn(
+2026-09-05 01:18:51.450 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 01:18:51.460 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.

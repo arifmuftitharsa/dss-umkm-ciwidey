@@ -4,3 +4,11 @@ __pycache__/
 .venv/
 venv/
 .DS_Store
+
+# Database SQLite runtime -- skema & seed sepenuhnya dibangun otomatis oleh
+# data/store.py:init_db() dari config.py (CREATE TABLE IF NOT EXISTS +
+# seeding idempotent). File biner ini murni artefak runtime yang akan terus
+# berubah tiap ada pencatatan penjualan nyata -- jangan campur dengan version
+# control kode. Tiap environment (dev/deploy) membuat DB sendiri saat pertama
+# kali dijalankan.
+app/data/dss_umkm.db

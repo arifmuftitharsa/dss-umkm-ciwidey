@@ -102,30 +102,75 @@ def render():
         from data import record_sales
 
         prod_map = store.get_produk_dict()
-        cc1, cc2, cc3 = st.columns([2, 1, 1])
-        with cc1:
+        mulai_operasional = store.get_tanggal_mulai_operasional()
+        hari_ini = pd.Timestamp.now().normalize()
+
+        if mulai_operasional is None:
+            # Titik reset (T-1) belum diaktifkan -- form pencatatan terkunci.
+            # Data yang ada masih 100% data latihan sintetis (2023-2025).
             pid_sel = st.selectbox("Produk", list(prod_map.keys()),
                                    format_func=lambda k: prod_map[k]["nama"],
                                    key="rec_pid")
-        nxt = record_sales.next_valid_date(pid_sel)
-        with cc2:
-            # tanggal dikunci ke hari berikutnya agar data tetap berurutan
-            tgl = st.date_input("Tanggal penjualan",
-                                value=nxt, min_value=nxt, max_value=nxt,
-                                disabled=True) if nxt is not None else None
-        with cc3:
-            qty = st.number_input("Jumlah terjual", min_value=0, step=1)
-
-        if nxt is not None:
-            st.caption(f"📅 Mencatat untuk **{nxt.date()}** (hari berikutnya setelah "
-                       f"data terakhir). Pencatatan berurutan menjaga perkiraan tetap valid.")
-
-        if st.button("🧾 Catat Penjualan", type="primary"):
-            ok, msg = record_sales.record_one(
-                pid_sel, prod_map[pid_sel]["nama"], nxt, qty)
-            (st.success if ok else st.warning)(msg)
-            if ok:
+            st.warning(
+                "Sistem masih memakai data latihan (bukan catatan penjualan "
+                "asli). Aktifkan data real dulu sebelum mulai mencatat "
+                "penjualan sungguhan -- data latihan lama tidak lagi dipakai "
+                "untuk menghitung tren setelah ini."
+            )
+            konfirmasi = st.checkbox(
+                f"Saya paham — mulai catat data asli mulai hari ini "
+                f"({hari_ini.date()}), data latihan lama tidak lagi dipakai "
+                f"untuk hitung tren.",
+                key="konfirmasi_reset_operasional",
+            )
+            if st.button("🚀 Mulai Pakai Data Real Hari Ini", type="primary",
+                        disabled=not konfirmasi):
+                store.set_tanggal_mulai_operasional(hari_ini)
+                try:
+                    import core.forecasting as fc
+                    fc._HIST = None
+                except Exception:
+                    pass
                 st.rerun()
+        else:
+            cc1, cc2, cc3 = st.columns([2, 1, 1])
+            with cc1:
+                pid_sel = st.selectbox("Produk", list(prod_map.keys()),
+                                       format_func=lambda k: prod_map[k]["nama"],
+                                       key="rec_pid")
+
+            if record_sales.sudah_tercatat_hari_ini(pid_sel):
+                # Tanggal valid berikutnya untuk produk ini sudah lewat hari
+                # sungguhan sekarang -- jangan render date_input (min_value
+                # > max_value akan ditolak Streamlit). Per produk: produk
+                # lain di dropdown mungkin belum tercatat, tetap bisa dipilih.
+                terbaru = record_sales.last_records(pid_sel, n=1)
+                if not terbaru.empty:
+                    b = terbaru.iloc[0]
+                    st.success(
+                        f"✓ Sudah tercatat untuk hari ini: {prod_map[pid_sel]['nama']}, "
+                        f"{int(b['Terjual'])} unit ({b['Tanggal']}). Kembali lagi besok "
+                        f"untuk mencatat penjualan berikutnya.")
+                else:
+                    st.success("✓ Sudah tercatat untuk hari ini. Kembali lagi besok "
+                              "untuk mencatat penjualan berikutnya.")
+            else:
+                nxt = record_sales.next_valid_date(pid_sel)
+                with cc2:
+                    tgl = st.date_input("Tanggal penjualan",
+                                        value=nxt, min_value=nxt, max_value=hari_ini)
+                with cc3:
+                    qty = st.number_input("Jumlah terjual", min_value=0, step=1)
+
+                st.caption(f"📅 Tanggal valid berikutnya: **{nxt.date()}** — pencatatan "
+                           f"berurutan menjaga perkiraan tetap valid.")
+
+                if st.button("🧾 Catat Penjualan", type="primary"):
+                    ok, msg = record_sales.record_one(
+                        pid_sel, prod_map[pid_sel]["nama"], tgl, qty)
+                    (st.success if ok else st.warning)(msg)
+                    if ok:
+                        st.rerun()
 
         # --- Koreksi / hapus catatan manual
         manual = record_sales.manual_records(pid_sel)

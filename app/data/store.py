@@ -50,6 +50,9 @@ def init_db(reset: bool = False):
         CREATE TABLE IF NOT EXISTS libur_window (
             jenis TEXT PRIMARY KEY, h_minus INTEGER, h_plus INTEGER
         );
+        CREATE TABLE IF NOT EXISTS pengaturan_sistem (
+            kunci TEXT PRIMARY KEY, nilai TEXT
+        );
     """)
     con.commit()
 
@@ -182,6 +185,50 @@ def get_window_config() -> dict:
 def save_window_df(df: pd.DataFrame):
     con = _conn()
     df.to_sql("libur_window", con, if_exists="replace", index=False)
+    con.close()
+
+
+# --- Titik reset operasional (T-1): batas antara data training sintetis
+# dan catatan penjualan asli. None = belum diaktifkan; form Catat Penjualan
+# terkunci sampai pemilik menekan "Mulai Pakai Data Real Hari Ini".
+def get_tanggal_mulai_operasional() -> pd.Timestamp | None:
+    con = _conn()
+    row = con.execute(
+        "SELECT nilai FROM pengaturan_sistem WHERE kunci = 'tanggal_mulai_operasional'"
+    ).fetchone()
+    con.close()
+    return None if row is None else pd.Timestamp(row[0])
+
+
+def set_tanggal_mulai_operasional(tanggal) -> None:
+    """Aktifkan titik reset. Aksi eksplisit sekali jalan (bukan otomatis) --
+    dipicu tombol konfirmasi di views/pengaturan.py."""
+    tanggal = pd.Timestamp(tanggal).normalize()
+    con = _conn()
+    con.execute(
+        "INSERT OR REPLACE INTO pengaturan_sistem VALUES ('tanggal_mulai_operasional', ?)",
+        (tanggal.strftime("%Y-%m-%d"),),
+    )
+    con.commit()
+    con.close()
+
+
+def reset_tanggal_mulai_operasional() -> None:
+    """Kembalikan ke kondisi belum diaktifkan (form terkunci lagi).
+
+    KHUSUS DEVELOPMENT/TESTING -- tak ada tombol UI untuk ini di produksi
+    (sengaja, demi keamanan demo Ciwidey). Panggil manual lewat terminal
+    saat perlu mengulang pengujian T-1 dari kondisi awal:
+
+        cd app && venv/Scripts/python.exe -c \
+            "import sys; sys.path.insert(0,'.'); from data import store; \
+             store.reset_tanggal_mulai_operasional()"
+    """
+    con = _conn()
+    con.execute(
+        "DELETE FROM pengaturan_sistem WHERE kunci = 'tanggal_mulai_operasional'"
+    )
+    con.commit()
     con.close()
 
 
