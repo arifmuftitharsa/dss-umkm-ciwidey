@@ -44,12 +44,16 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
         line=dict(color=WARNA["sekunder"], width=2), name="Penjualan sebelumnya",
         hovertemplate="%{x|%a %d %b}<br>Terjual: %{y} " + satuan + "<extra></extra>",
     ))
-    # jembatan aktual->perkiraan
-    bridge_x = [history.date.iloc[-1], future.date.iloc[0]]
-    bridge_y = [history.quantity_sold.iloc[-1], future.yhat.iloc[0]]
-    fig.add_trace(go.Scatter(x=bridge_x, y=bridge_y, mode="lines",
-                             line=dict(color=WARNA["primer"], width=2, dash="dot"),
-                             showlegend=False, hoverinfo="skip"))
+    # jembatan aktual->perkiraan -- hanya kalau ada riwayat. Produk baru
+    # tanpa penjualan sebelumnya (T-4) punya history kosong: tak ada apa
+    # pun untuk disambung, itu kebenaran (belum pernah terjual), bukan
+    # kekurangan tampilan yang perlu ditambal dengan data karangan.
+    if not history.empty:
+        bridge_x = [history.date.iloc[-1], future.date.iloc[0]]
+        bridge_y = [history.quantity_sold.iloc[-1], future.yhat.iloc[0]]
+        fig.add_trace(go.Scatter(x=bridge_x, y=bridge_y, mode="lines",
+                                 line=dict(color=WARNA["primer"], width=2, dash="dot"),
+                                 showlegend=False, hoverinfo="skip"))
     # perkiraan
     fig.add_trace(go.Scatter(
         x=future.date, y=future.yhat, mode="lines+markers",

@@ -9,7 +9,8 @@ import streamlit as st
 from components import ui, charts
 from core.forecasting import forecast_future
 from core.inventory import inventory_table
-from config import PRODUK, STUDI_KASUS
+from data import store
+from config import STUDI_KASUS
 
 NO_BAR = {"displayModeBar": False}
 
@@ -22,12 +23,18 @@ def render(df):
         unsafe_allow_html=True,
     )
 
+    # T-4: daftar produk dari database, bukan config.PRODUK statis --
+    # produk baru lewat dashboard harus ikut terhitung di halaman ini.
+    # Diambil sekali, dipakai ulang di seluruh fungsi (hindari query
+    # berulang) -- diteruskan sebagai argumen ke _ada_spike/_ada_libur_nasional.
+    produk = store.get_produk_dict()
+
     inv = inventory_table(df)
     kritis = inv[inv.Status == "Kritis"]
     waspada = inv[inv.Status == "Waspada"]
 
     total_unit = 0
-    for pid in PRODUK:
+    for pid in produk:
         _, fut, _ = forecast_future(df, pid)
         total_unit += int(fut.yhat.sum())
 
@@ -42,7 +49,7 @@ def render(df):
         ui.kpi("Bahan Perlu Dibeli", f"{len(kritis)}",
                f"{len(waspada)} lainnya mulai menipis")
     with c3:
-        ada_libur = _ada_libur_nasional(df)
+        ada_libur = _ada_libur_nasional(df, produk)
         ui.kpi("Hari Libur Nasional", "Ada" if ada_libur else "Tidak",
                "dalam periode perkiraan" if ada_libur else "tidak ada minggu ini")
 
@@ -50,13 +57,18 @@ def render(df):
 
     kiri, kanan = st.columns([1.55, 1])
     with kiri:
-        pid_utama = "P003"
-        ui.section(f"Perkiraan Penjualan — {PRODUK[pid_utama]['nama']}",
+        # "Produk dengan penjualan tertinggi" (lihat deskripsi section di
+        # bawah) -- dulu hardcode "P003" (T-4: kebetulan itu memang mu
+        # tertinggi di config lama, 80 vs 40/15, tapi statis). Sekarang
+        # dihitung dinamis dari mu di database supaya tetap benar berapa
+        # pun produk ditambah/dihapus lewat dashboard.
+        pid_utama = max(produk, key=lambda pid: produk[pid]["mu"])
+        ui.section(f"Perkiraan Penjualan — {produk[pid_utama]['nama']}",
                    "Produk dengan penjualan tertinggi. Garis biru = penjualan 60 hari "
                    "lalu, garis hijau = perkiraan 7 hari, area hijau muda = rentang "
                    "kemungkinan (bisa lebih tinggi/rendah).")
         hist, fut, _ = forecast_future(df, pid_utama)
-        st.plotly_chart(charts.forecast_chart(hist, fut, PRODUK[pid_utama]["satuan"]),
+        st.plotly_chart(charts.forecast_chart(hist, fut, produk[pid_utama]["satuan"]),
                         use_container_width=True, config=NO_BAR)
 
     with kanan:
@@ -75,7 +87,7 @@ def render(df):
                 f"{r['Bahan Baku']} mulai menipis",
                 f"Stok {r['Stok']} {r['Satuan']}. Siapkan pembelian dalam beberapa hari.",
                 "waspada")
-        if _ada_spike(df):
+        if _ada_spike(df, produk):
             ui.action(
                 "Perkiraan lonjakan penjualan minggu ini",
                 "Ada akhir pekan atau hari libur. Penjualan cenderung naik — "
@@ -88,19 +100,21 @@ def render(df):
     st.plotly_chart(charts.inventory_bar(inv), use_container_width=True, config=NO_BAR)
 
 
-def _ada_spike(df) -> bool:
-    for pid in PRODUK:
+def _ada_spike(df, produk: dict) -> bool:
+    for pid in produk:
         _, fut, _ = forecast_future(df, pid)
         if (fut.is_holiday.sum() > 0) or (fut.is_weekend.sum() > 0):
             return True
     return False
 
 
-def _ada_libur_nasional(df) -> bool:
-    """True bila ada hari libur nasional pada periode perkiraan."""
-    for pid in PRODUK:
+def _ada_libur_nasional(df, produk: dict) -> bool:
+    """True bila ada hari libur nasional pada periode perkiraan.
+
+    produk diterima sebagai argumen (bukan query ulang ke database) --
+    cukup cek SATU produk, kalender sama untuk semua produk.
+    """
+    for pid in produk:
         _, fut, _ = forecast_future(df, pid)
-        if fut.is_holiday.sum() > 0:
-            return True
-        break  # cukup cek satu produk (kalender sama untuk semua)
+        return fut.is_holiday.sum() > 0
     return False

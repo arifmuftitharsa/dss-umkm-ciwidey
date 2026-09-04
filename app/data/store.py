@@ -13,11 +13,14 @@ Saat deployment (Sec. 3.7.1), SQLite dapat diganti PostgreSQL tanpa mengubah
 logika aplikasi karena skema tabelnya sama.
 """
 from __future__ import annotations
+import logging
 import sqlite3
 from pathlib import Path
 import pandas as pd
 
 from config import PRODUK, BAHAN_BAKU, BOM
+
+logger = logging.getLogger(__name__)
 
 DB_PATH = Path(__file__).resolve().parent / "dss_umkm.db"
 
@@ -160,12 +163,39 @@ def get_bom_dict() -> dict:
 
 
 def get_produk_dict() -> dict:
-    """{pid: {nama, satuan, mu, harga}} — seperti config.PRODUK."""
-    out = {}
-    for _, r in get_produk().iterrows():
-        out[r.id] = {"nama": r.nama, "satuan": r.satuan,
-                     "mu": r.mu, "harga": r.harga}
-    return out
+    """{pid: {nama, satuan, mu, harga}} — sumber kebenaran tunggal untuk
+    daftar produk (T-4), dipakai core/forecasting.py, core/inventory.py,
+    views/forecasting.py, views/overview.py.
+
+    init_db() dipanggil dulu -- idempotent dan self-healing: kalau tabel
+    produk belum ada / masih kosong, ia dibuat & di-seed otomatis dari
+    config.PRODUK (lihat init_db()), sehingga "DB kosong" BUKAN kondisi
+    yang butuh fallback di sini. Dict kosong hasil query yang SUKSES tetap
+    dikembalikan apa adanya (misal pemilik sengaja menghapus semua produk
+    lewat dashboard) -- bukan alasan fallback, supaya tak diam-diam
+    memunculkan kembali produk default yang sudah sengaja dihapus.
+
+    Fallback ke config.PRODUK statis HANYA dipakai kalau ada kegagalan
+    sungguhan (file database korup, permission error, dsb) -- dicatat lewat
+    logger.warning karena itu sinyal masalah infrastruktur yang perlu
+    diperiksa developer, bukan sesuatu yang bisa dilakukan pemilik UMKM
+    dari UI (beda pertimbangan dari indikator used_climatology T-7b)."""
+    try:
+        init_db()
+        out = {}
+        for _, r in get_produk().iterrows():
+            out[r.id] = {"nama": r.nama, "satuan": r.satuan,
+                         "mu": r.mu, "harga": r.harga}
+        return out
+    except Exception as e:
+        logger.warning(
+            "get_produk_dict: gagal baca tabel produk dari database (%s: %s) "
+            "-- pakai config.PRODUK statis sebagai cadangan darurat. Ini "
+            "sinyal masalah infrastruktur (database korup/permission), "
+            "bukan kondisi normal -- periksa data/dss_umkm.db.",
+            type(e).__name__, e,
+        )
+        return PRODUK
 
 
 # --- Window libur (editable)

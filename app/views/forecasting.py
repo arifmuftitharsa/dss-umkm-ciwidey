@@ -10,8 +10,9 @@ import pandas as pd
 
 from components import ui, charts
 from core.forecasting import forecast_future
+from data import store
 from data.weather import MAX_FORECAST_DAYS
-from config import PRODUK, MODEL_TERBAIK
+from config import MODEL_TERBAIK
 
 NO_BAR = {"displayModeBar": False}
 
@@ -21,10 +22,14 @@ def render(df):
     st.markdown('<div class="section-sub">Perkiraan jumlah terjual per produk '
                 'untuk beberapa hari ke depan</div>', unsafe_allow_html=True)
 
+    # T-4: daftar produk dari database, bukan config.PRODUK statis --
+    # produk baru lewat dashboard harus muncul di dropdown ini.
+    produk = store.get_produk_dict()
+
     c_prod, c_hor = st.columns([2, 1])
     with c_prod:
-        pid = st.selectbox("Pilih produk", list(PRODUK.keys()),
-                           format_func=lambda k: PRODUK[k]["nama"])
+        pid = st.selectbox("Pilih produk", list(produk.keys()),
+                           format_func=lambda k: produk[k]["nama"])
     with c_hor:
         horizon = st.selectbox("Horizon perkiraan", [7, 14, 30],
                                format_func=lambda d: f"{d} hari")
@@ -39,7 +44,7 @@ def render(df):
         )
 
     hist, fut, _ = forecast_future(df, pid, MODEL_TERBAIK, horizon=horizon)
-    satuan = PRODUK[pid]["satuan"]
+    satuan = produk[pid]["satuan"]
 
     total = int(fut.yhat.sum())
     rata = int(fut.yhat.mean())
@@ -55,7 +60,7 @@ def render(df):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    ui.section(f"Grafik Perkiraan — {PRODUK[pid]['nama']}",
+    ui.section(f"Grafik Perkiraan — {produk[pid]['nama']}",
                "Garis hijau = perkiraan; area terang = rentang kemungkinan")
     st.plotly_chart(charts.forecast_chart(hist, fut, satuan),
                     use_container_width=True, config=NO_BAR)

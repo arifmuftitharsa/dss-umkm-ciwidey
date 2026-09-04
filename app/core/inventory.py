@@ -11,8 +11,9 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from config import (BAHAN_BAKU, BOM, PRODUK, PEMASOK, Z_SCORE)
+from config import (BAHAN_BAKU, BOM, PEMASOK, Z_SCORE)
 from core.forecasting import forecast_future
+from data import store
 
 
 def _sumber_data():
@@ -35,10 +36,12 @@ def material_demand_7d(df) -> pd.DataFrame:
     seluruh produk via BOM, lalu agregasi.
     Mengembalikan DataFrame: date x material (kebutuhan harian) + sigma per material.
     """
-    # forecast 7 hari untuk semua produk
+    # forecast 7 hari untuk semua produk. T-4: daftar produk dari database
+    # (store.get_produk_dict()), bukan config.PRODUK statis -- supaya
+    # produk baru lewat dashboard ikut masuk perhitungan kebutuhan bahan.
     per_produk = {}
     sigma_produk = {}
-    for pid in PRODUK:
+    for pid in store.get_produk_dict():
         _, fut, sig = forecast_future(df, pid)
         per_produk[pid] = fut.set_index("date")["yhat"]
         sigma_produk[pid] = sig

@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import joblib
 
-from config import PRODUK, MODEL, MODEL_TERBAIK, Z_SCORE, STUDI_KASUS
+from config import MODEL, MODEL_TERBAIK, Z_SCORE, STUDI_KASUS
 from core import features as F
 from data import store
 from data import weather
@@ -75,6 +75,20 @@ def split_70_15_15(s: pd.DataFrame):
 def forecast_future(df, product_id, model_key=MODEL_TERBAIK, horizon=None):
     """Forecast n hari ke depan + pita keyakinan. -> (history, future, sigma)."""
     horizon = horizon or HORIZON
+
+    # T-4: daftar produk dari database (store.get_produk_dict()), bukan
+    # config.PRODUK statis -- produk baru yang ditambah lewat dashboard
+    # harus bisa diforecast tanpa KeyError. Diambil sekali di sini, dipakai
+    # ulang di bawah (hindari query DB berulang dalam satu panggilan).
+    produk = store.get_produk_dict()
+    if product_id not in produk:
+        raise ValueError(
+            f"Produk '{product_id}' tidak ditemukan di database. "
+            "Pastikan produk sudah disimpan lewat halaman Manajemen "
+            "sebelum diminta forecast-nya."
+        )
+    mu = produk[product_id]["mu"]
+
     model = _load_model(product_id)
     hist_all = _load_history()
     s = (hist_all[hist_all.product_id == product_id]
@@ -87,8 +101,15 @@ def forecast_future(df, product_id, model_key=MODEL_TERBAIK, horizon=None):
     mulai_operasional = store.get_tanggal_mulai_operasional()
     if mulai_operasional is not None:
         s = s[s.date >= mulai_operasional].reset_index(drop=True)
-        last_date = s["date"].max() if not s.empty else (
-            mulai_operasional - pd.Timedelta(days=1))
+
+    if s.empty:
+        # Produk tanpa riwayat SAMA SEKALI (T-4: baru ditambah lewat
+        # dashboard, belum pernah dicatat sekali pun) -- beda dari
+        # cold-start pasca-reset T-1 (yang selalu punya mulai_operasional
+        # sebagai titik acuan). Tanpa fallback ini, last_date jadi NaT dan
+        # weather.future_exogenous(NaT, ...) crash. Forecast produk baru
+        # paling masuk akal mulai dari hari ini sungguhan.
+        last_date = pd.Timestamp.now().normalize() - pd.Timedelta(days=1)
     else:
         last_date = s["date"].max()
 
@@ -105,9 +126,13 @@ def forecast_future(df, product_id, model_key=MODEL_TERBAIK, horizon=None):
         # pun catatan asli -- build_feature_row() butuh minimal 1 elemen
         # (s[0] dipakai saat riwayat lebih pendek dari lag/window). Pakai
         # base demand datar sampai hari pertama tercatat, sama seperti
-        # jalur "model belum tersedia" yang sudah ada.
-        mu = PRODUK[product_id]["mu"]
-        yhat = np.full(HORIZON, mu, dtype=float)
+        # jalur "model belum tersedia" yang sudah ada. Produk baru tanpa
+        # model .joblib juga otomatis lewat sini -- mu berasal dari input
+        # pemilik sendiri saat menambah produk (T-4), bukan karangan sistem.
+        #
+        # horizon (bukan HORIZON konstanta global) -- bug T-4 lama: panjang
+        # array dulu selalu 7 walau horizon diminta 14/30.
+        yhat = np.full(horizon, mu, dtype=float)
     else:
         series = list(qty_hist)
         yhat = []
@@ -120,7 +145,6 @@ def forecast_future(df, product_id, model_key=MODEL_TERBAIK, horizon=None):
             series.append(pred)
         yhat = np.array(yhat)
 
-    mu = PRODUK[product_id]["mu"]
     sigma = MODEL[model_key]["mape_ref"] * mu
     lower = np.clip(yhat - Z_SCORE * sigma, 0, None)
     upper = yhat + Z_SCORE * sigma
