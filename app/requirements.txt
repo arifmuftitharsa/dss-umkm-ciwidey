@@ -2,3 +2,8 @@ streamlit>=1.30
 plotly>=5.18
 pandas>=2.0
 numpy>=1.24
+joblib>=1.5.3
+xgboost==3.2.0
+scikit-learn==1.8.0
+holidays>=0.101
+requests>=2.31
