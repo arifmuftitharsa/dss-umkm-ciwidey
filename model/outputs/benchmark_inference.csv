@@ -1,0 +1,5 @@
+product,product_name,n_test_rows,n_repeat,xgboost_ms,hybrid_ms,hybrid_lebih_lambat_x
+P001,Selai Stroberi (250g),161,100,1.09,37.59,34.4
+P002,Strawberry Cake (loyang),161,100,1.05,37.39,35.5
+P003,Jus Stroberi Segar (cup),161,100,1.07,37.63,35.3
+RATA-RATA,-,161,100,1.07,37.54,35.1

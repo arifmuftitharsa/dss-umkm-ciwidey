@@ -1,0 +1,16 @@
+product,scenario,MAE,RMSE,MAPE
+P001,A (lag+rolling),7.263,10.844,15.552
+P001,B (+day_of_week),6.668,10.212,14.425
+P001,C (+weekend),6.919,10.693,14.827
+P001,D (+holiday),4.397,5.77,10.359
+P001,E (+rainfall / full),3.597,4.502,8.018
+P002,A (lag+rolling),2.647,3.912,15.715
+P002,B (+day_of_week),2.498,3.714,14.818
+P002,C (+weekend),2.471,3.707,14.641
+P002,D (+holiday),1.682,2.213,10.698
+P002,E (+rainfall / full),1.338,1.727,8.102
+P003,A (lag+rolling),18.333,32.77,20.486
+P003,B (+day_of_week),15.24,27.379,16.812
+P003,C (+weekend),14.962,26.222,16.28
+P003,D (+holiday),8.227,11.045,9.849
+P003,E (+rainfall / full),6.628,8.434,7.245

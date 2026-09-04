@@ -1,0 +1,53 @@
+{
+  "feature_cols": [
+    "lag_1",
+    "lag_7",
+    "lag_14",
+    "roll_mean_7",
+    "roll_mean_30",
+    "roll_std_7",
+    "dow_mon",
+    "dow_tue",
+    "dow_wed",
+    "dow_thu",
+    "dow_fri",
+    "dow_sat",
+    "dow_sun",
+    "is_weekend",
+    "is_holiday",
+    "hw_hm1",
+    "hw_h0",
+    "hw_hp1",
+    "hw_hp2",
+    "rainfall_mm"
+  ],
+  "products": {
+    "P001": {
+      "best_params": {
+        "n_estimators": 300,
+        "max_depth": 3,
+        "learning_rate": 0.05,
+        "subsample": 0.7,
+        "colsample_bytree": 0.7
+      }
+    },
+    "P002": {
+      "best_params": {
+        "n_estimators": 100,
+        "max_depth": 3,
+        "learning_rate": 0.1,
+        "subsample": 0.9,
+        "colsample_bytree": 0.7
+      }
+    },
+    "P003": {
+      "best_params": {
+        "n_estimators": 300,
+        "max_depth": 5,
+        "learning_rate": 0.1,
+        "subsample": 0.9,
+        "colsample_bytree": 0.9
+      }
+    }
+  }
+}

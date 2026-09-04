@@ -1,0 +1,7 @@
+material_id,material,avg_demand,std_demand,lead_time,EOQ,ROP,safety_stock
+BB01,Stroberi Segar,32.92,13.87,2,28.69,98.19,32.36
+BB02,Gula Pasir,12.1,5.06,3,26.94,50.76,14.46
+BB03,Tepung Terigu,3.7,1.53,3,14.9,15.48,4.39
+BB04,Mentega,1.85,0.77,3,7.02,7.74,2.19
+BB05,Susu Segar,7.62,3.23,2,13.01,22.78,7.54
+BB06,Telur Ayam,36.99,15.35,2,27.2,109.79,35.82
