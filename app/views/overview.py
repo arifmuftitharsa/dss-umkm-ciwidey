@@ -9,7 +9,7 @@ import streamlit as st
 from components import ui, charts
 from core.forecasting import forecast_future
 from core.inventory import inventory_table
-from config import PRODUK, MODEL, MODEL_TERBAIK, STUDI_KASUS
+from config import PRODUK, STUDI_KASUS
 
 NO_BAR = {"displayModeBar": False}
 
@@ -31,19 +31,17 @@ def render(df):
         _, fut, _ = forecast_future(df, pid)
         total_unit += int(fut.yhat.sum())
 
-    akurasi = 100 - MODEL[MODEL_TERBAIK]["mape_ref"] * 100
-
-    # --- KPI: bahasa pemilik
-    c1, c2, c3, c4 = st.columns(4)
+    # --- KPI: bahasa pemilik. Sengaja TANPA angka akurasi/MAPE (T-19) --
+    # data training masih sintetis (T-15), angka apa pun yang menyiratkan
+    # "seberapa akurat sistem ini" berisiko menyesatkan pemilik UMKM.
+    c1, c2, c3 = st.columns(3)
     with c1:
-        ui.kpi("Akurasi Perkiraan", f"{akurasi:.0f}%", "berdasarkan uji data historis")
-    with c2:
         ui.kpi("Perkiraan Penjualan", f"{total_unit:,}".replace(",", "."),
                "total unit 7 hari ke depan")
-    with c3:
+    with c2:
         ui.kpi("Bahan Perlu Dibeli", f"{len(kritis)}",
                f"{len(waspada)} lainnya mulai menipis")
-    with c4:
+    with c3:
         ada_libur = _ada_libur_nasional(df)
         ui.kpi("Hari Libur Nasional", "Ada" if ada_libur else "Tidak",
                "dalam periode perkiraan" if ada_libur else "tidak ada minggu ini")
