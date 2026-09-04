@@ -3,7 +3,7 @@
 Ini proyek pengabdian masyarakat/skripsi kakak tingkat (Felix Joshua Paulus, 105222032) yang
 sedang dilanjutkan oleh Arif: perbaikan kode, deployment, dokumentasi, onboarding pengguna.
 
-**Sumber kebenaran lengkap ada di `brief/BRIEF-PROYEK-DSS-UMKM-v2.md` di folder ini — baca file
+**Sumber kebenaran lengkap ada di `brief/BRIEF-PROYEK-DSS-UMKM-v6.md` di folder ini — baca file
 itu dulu sebelum menjawab pertanyaan substantif soal skripsi, temuan bug, atau rencana kerja.**
 File ini (`CLAUDE.md`) hanya ringkasan supaya kamu tidak mulai dari nol tiap sesi.
 
@@ -18,27 +18,31 @@ Detail penuh tiap temuan ada di brief. Ringkasan cepat:
 
 | # | Temuan | Prioritas |
 |---|--------|-----------|
-| T-1 | `data/record_sales.py` kunci tanggal di 2025-12-31, tolak lompatan. **DIPERBARUI 4 Sept:** widget UI dikunci min=max, pengguna TIDAK PERNAH melihat pesan error sama sekali — lebih parah dari deskripsi awal | KRITIS — blocker demo mutlak |
-| T-2 | `core/forecasting.py` tambah noise acak ke prediksi (kosmetik). **DIKONFIRMASI 4 Sept di UI:** 2 reload kondisi identik hasilkan total beda (502 vs 498 jar) | KRITIS — hapus 2 baris |
-| T-3 | Sigma/safety stock dari konstanta literatur, bukan error model nyata | TINGGI — akar stockout |
-| T-4 | Produk baru via dashboard: KeyError, tidak masuk hitungan bahan | KRITIS |
+| T-1 | `data/record_sales.py` kunci tanggal di 2025-12-31, tolak lompatan. **✅ SELESAI 5 Sept (commit a6cdeb1)** — Opsi B: titik reset eksplisit (tabel `pengaturan_sistem`), filter riwayat pasca-reset di forecasting.py, bug widget UI diperbaiki | KRITIS — **SELESAI** |
+| T-2 | `core/forecasting.py` tambah noise acak ke prediksi. **✅ SELESAI 5 Sept (commit e903dd0)** — noise dihapus; terbukti noise SUDAH deterministik sejak awal (bukan penyebab variasi 502/498, itu T-7b) | KRITIS — **SELESAI** |
+| T-3 | Sigma/safety stock dari konstanta literatur, bukan error model nyata | TINGGI — **BELUM, menunggu keputusan Bu Ariana** |
+| T-4 | Produk baru via dashboard: KeyError, tidak masuk hitungan bahan. **✅ SELESAI 5 Sept (commit fe1f732)** — scope meluas ke 5 file (core/ + views/), plus 2 bug tambahan ditemukan & diperbaiki (NaT crash, chart crash riwayat kosong), plus hardcode pid_utama P003 | KRITIS — **SELESAI** |
 | T-5 | GUGUR — scaler aman, sudah dibungkus Pipeline di `.joblib` | selesai, tidak perlu kerja |
 | T-6 | GUGUR — CSV vs SQLite bukan konflik sumber, pembagian sudah benar | selesai |
 | T-7 | GUGUR — fallback cuaca luring sudah ada dan bagus | selesai (T-7b masih ada, lihat bawah) |
-| T-7b | Bug penyelarasan tanggal cuaca saat forecast_future | KECIL, ikut selesai bareng T-1 |
-| T-8 | `requirements.txt` hilang xgboost/joblib/holidays/requests/scikit-learn | TINGGI — blocker deploy |
-| T-9 | Tanpa autentikasi, storage ephemeral (data hilang saat redeploy) | SEDANG-BESAR |
-| T-10 | Angka evaluasi palsu di kode (`_EVAL_RESULTS`, `simulasi_skenario`) — kode mati, tak tampil, tapi repo publik | MENENGAH — hapus saja |
+| T-7b | Bug penyelarasan tanggal cuaca saat forecast_future. **✅ SELESAI 5 Sept (commit 6a05219)** — percabangan live-API vs klimatologi, flag `used_climatology` disiapkan untuk Minggu 3 | **SELESAI** |
+| T-8 | `requirements.txt` hilang xgboost/joblib/holidays/requests/scikit-learn. **✅ SELESAI 4 Sept (commit 8ddd1c0)** — xgboost/sklearn dipin persis, lainnya floor | TINGGI — **SELESAI** |
+| T-9 | Tanpa autentikasi, storage ephemeral (data hilang saat redeploy) | SEDANG-BESAR — belum, rencana Minggu 3 |
+| T-10 | Angka evaluasi palsu di kode (`_EVAL_RESULTS`, `simulasi_skenario`) — kode mati, tak tampil, tapi repo publik | MENENGAH — hapus saja, belum dikerjakan |
 | T-11 | `config.py` beda dari skripsi (harga, BOM, kode bahan) | MENENGAH — akan diganti data mitra asli |
-| T-12 | Batas lot EOQ (Persamaan 3.11) tidak diimplementasikan, `shelf_life` tidak ada | SEDANG — bareng T-3 jadi akar stockout |
+| T-12 | Batas lot EOQ (Persamaan 3.11) tidak diimplementasikan, `shelf_life` tidak ada | SEDANG — **BELUM, menunggu keputusan Bu Ariana bareng T-3** |
 | T-13 | Startup regenerasi dataset sintetis 3 tahun, tidak dipakai (`forecast_future` baca CSV, bukan df) | RENDAH |
 | T-14 | Output `dss-model` masih ARIMA (32%), skripsi laporkan ARIMAX (8-9%) — perlu run_pipeline.py ulang | RENDAH |
 | T-15 | Model dilatih 100% data sintetis — jangan sebut akurasi ke UMKM | selalu berlaku |
 | T-16 | Formula demand di `generate_dataset.py` multiplicative, skripsi Pers. 3.1 tulis aditif — beda struktur matematis | RENDAH, akademis saja |
 | T-17 | `holidays==0.98` di repo vs 0.101 diverifikasi skripsi; nama file `requirementsumkm.txt` bukan `requirements.txt` | RENDAH |
 | T-18 | Repo tak 100% reproduksi Tabel 4.7 (demand P001) walau seed=42 sama — kode direvisi setelah tabel final skripsi dibuat | RENDAH, jangan asumsikan retraining = angka skripsi identik |
-| T-19 | Kartu "Akurasi 92%/92,1%" tampil mencolok ke pengguna di 2 halaman (ditemukan 4 Sept saat uji UI langsung) | TINGGI — pelanggaran aturan langsung, mudah diperbaiki |
-| T-20 | `pandas`/`numpy` floor version resolve ke lompatan mayor (pandas 2.x→3.0.5) belum diuji, sama pola risiko dengan alasan pin xgboost/sklearn | SEDANG — verifikasi atau pin persis sebelum deploy |
+| T-19 | Kartu "Akurasi 92%/92,1%" tampil mencolok ke pengguna di 2 halaman. **✅ SELESAI 5 Sept (commit b70209b)** — dihapus total (Opsi A), docstring asli file sudah menjanjikan "tanpa istilah teknis" | TINGGI — **SELESAI** |
+| T-20 | `pandas`/`numpy` floor version resolve ke lompatan mayor (pandas 2.x→3.0.5) belum diuji, sama pola risiko dengan alasan pin xgboost/sklearn | SEDANG — belum diverifikasi/dipin |
+
+**Status per 5 September 2026: SEMUA KRITIS/TINGGI selesai kecuali T-3/T-12 (menunggu
+keputusan Bu Ariana) dan T-20 (belum mendesak). Progress report ke Bu Ariana jadi prioritas
+berikutnya sebelum lanjut kerja teknis lain.**
 
 ## Status commit progres (update tiap ada commit baru)
 
@@ -47,6 +51,12 @@ Detail penuh tiap temuan ada di brief. Ringkasan cepat:
 | `9e81251` | Commit pertama, gabungan app/model/dataset-gen | 4 Sept 2026 |
 | `0865103` | Tambah README.md (riwayat + atribusi) | 4 Sept 2026 |
 | `8ddd1c0` | T-8: requirements.txt lengkap (xgboost/sklearn dipin persis, lainnya floor) | 4 Sept 2026 |
+| `638ae7a` | Rapikan struktur evidence, update CLAUDE.md dengan T-19/T-20 dan revisi T-1 | 4 Sept 2026 |
+| `e903dd0` | T-2: hapus noise acak forecasting (noise sudah deterministik sejak awal) | 5 Sept 2026 |
+| `6a05219` | T-7b: perbaiki mismatch tanggal cuaca, fail-fast except, flag used_climatology | 5 Sept 2026 |
+| `a6cdeb1` | T-1: titik reset operasional, filter riwayat pasca-reset, .gitignore untuk db | 5 Sept 2026 |
+| `b70209b` | T-19: hapus kartu akurasi, rapikan layout kolom | 5 Sept 2026 |
+| `fe1f732` | T-4: cold start produk baru (5 file), bug NaT + chart crash + hardcode P003 | 5 Sept 2026 |
 
 Evidence "sebelum perbaikan" direkam SEBELUM T-1/T-2 disentuh — evidence bersifat write-once,
 jangan diedit setelah direkam.
