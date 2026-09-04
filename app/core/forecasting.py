@@ -81,7 +81,11 @@ def forecast_future(df, product_id, model_key=MODEL_TERBAIK, horizon=None):
     qty_hist = list(s["qty_sold"].astype(float).values)
     last_date = s["date"].max()
 
-    fx = weather.future_exogenous(last_date + pd.Timedelta(days=1), horizon)
+    # used_climatology: disiapkan untuk Minggu 3/T-19 (tampilkan status ke
+    # pengguna kalau sistem sedang memakai cadangan klimatologi, bukan
+    # prakiraan cuaca live). Belum dipakai di sini -- lihat data/weather.py.
+    fx, used_climatology = weather.future_exogenous(
+        last_date + pd.Timedelta(days=1), horizon)
 
     if model is None:
         mu = PRODUK[product_id]["mu"]

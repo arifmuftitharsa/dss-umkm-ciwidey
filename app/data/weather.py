@@ -6,18 +6,40 @@ Cuaca:
   hari 17+  : klimatologi curah hujan bulanan Ciwidey (proksi deterministik)
 
 Batas 16 hari adalah batas prakiraan cuaca numerik itu sendiri, bukan
-keterbatasan API. Bila API gagal, seluruh periode memakai klimatologi.
+keterbatasan API. Bila API gagal ATAU start_date sudah lewat dari hari
+sungguhan (Open-Meteo Forecast API cuma bisa "N hari ke depan dari
+sekarang", bukan tanggal sembarang), seluruh periode memakai klimatologi
+— dan jejaknya dicatat lewat modul logging (lihat fetch_rainfall_forecast).
 
 Libur: kalender libur nasional Indonesia (python-holidays), dengan panjang
 window per jenis libur yang dapat diatur pemilik lewat halaman Manajemen.
 """
 from __future__ import annotations
+import logging
+from typing import NamedTuple
+
 import numpy as np
 import pandas as pd
+import requests
 
 from config import STUDI_KASUS
 
+logger = logging.getLogger(__name__)
+
 LAT, LON = STUDI_KASUS["koordinat"]
+
+
+class RainfallForecast(NamedTuple):
+    """Hasil fetch_rainfall_forecast(): nilai curah hujan + status sumbernya.
+
+    used_climatology bernilai True kalau ADA bagian window yang jatuh ke
+    klimatologi (baik sebagian maupun seluruhnya) -- False hanya kalau
+    seluruh window benar-benar dari Open-Meteo Forecast API live. Disiapkan
+    untuk dikonsumsi UI pada pekerjaan Minggu 3/T-19 (belum dipakai di sana
+    sekarang -- lihat core/forecasting.py dan data/record_sales.py).
+    """
+    values: np.ndarray
+    used_climatology: bool
 
 # Batas prakiraan numerik Open-Meteo (sifat sains cuaca, bukan keterbatasan API)
 MAX_FORECAST_DAYS = 16
@@ -37,37 +59,95 @@ def _klimatologi(dates):
                      for d in dates])
 
 
-def fetch_rainfall_forecast(start_date, n_days=7):
+def fetch_rainfall_forecast(start_date, n_days=7) -> RainfallForecast:
     """
-    Curah hujan harian n hari ke depan (mm), dengan transisi eksplisit:
-      - Hari 1..16  : prakiraan numerik Open-Meteo Forecast API
-      - Hari 17..n  : klimatologi bulanan (prakiraan numerik tak tersedia
-                      sejauh ini — batas fundamental sains cuaca)
-    Bila API gagal/offline, seluruh periode pakai klimatologi.
+    Curah hujan harian n hari ke depan (mm) mulai start_date.
+
+    Return RainfallForecast(values, used_climatology) -- lihat docstring
+    kelasnya untuk arti used_climatology.
+
+    Open-Meteo Forecast API cuma bisa menjawab "N hari ke depan dari HARI
+    SUNGGUHAN sekarang" — bukan tanggal sembarang. Jadi start_date dulu
+    diposisikan relatif hari sungguhan sebelum API dipanggil:
+
+      - start_date < hari ini       : seluruhnya di masa lalu relatif hari
+                                       sungguhan -> API tak bisa menjawab ini
+                                       sama sekali (bukan kegagalan, memang
+                                       di luar jangkauan API). Klimatologi
+                                       penuh dipakai, dicatat via logger.info
+                                       (kondisi ini terjadi selama T-1 belum
+                                       diperbaiki, karena last_date terkunci
+                                       di masa lalu; begitu T-1 selesai,
+                                       start_date otomatis jadi hari ini,
+                                       cabang ini otomatis tidak lagi
+                                       terpakai tanpa modifikasi kode).
+      - start_date >= hari ini      : window kita ada di dalam (sebagian
+                                       atau seluruhnya) rentang yang bisa
+                                       dijawab API. Hasil API digeser sesuai
+                                       offset (start_date - hari ini)
+                                       sebelum ditempel ke tanggal target.
+
+    Hari ke-17 dst dari start_date (di luar MAX_FORECAST_DAYS) tetap
+    klimatologi, sesuai batas fundamental sains cuaca.
+
+    Bila API gagal (jaringan/HTTP/format respons), seluruh periode pakai
+    klimatologi dan kegagalan dicatat via logger.warning — bukan ditelan
+    senyap.
     """
     dates = pd.date_range(start_date, periods=n_days, freq="D")
-    n_api = min(n_days, MAX_FORECAST_DAYS)
+    rain = _klimatologi(dates)  # default: klimatologi penuh
 
-    rain = _klimatologi(dates)  # default semua klimatologi
+    today = pd.Timestamp.now().normalize()
+    start = pd.Timestamp(start_date).normalize()
+    offset_days = (start - today).days
+
+    if offset_days < 0:
+        logger.info(
+            "fetch_rainfall_forecast: start_date %s ada di masa lalu relatif "
+            "hari ini (%s) -- Open-Meteo Forecast API tak bisa menjawab "
+            "tanggal itu (API ini cuma 'N hari ke depan dari sekarang'). "
+            "Pakai klimatologi penuh. Kondisi ini normal selama T-1 belum "
+            "diperbaiki (last_date terkunci di masa lalu).",
+            start.date(), today.date(),
+        )
+        return RainfallForecast(np.round(rain, 1), used_climatology=True)
+
+    # Berapa hari perlu diminta dari API supaya window [offset_days,
+    # offset_days + n_days) tercakup, dibatasi jangkauan numerik API.
+    request_days = min(offset_days + n_days, MAX_FORECAST_DAYS)
+    n_usable = request_days - offset_days  # bagian yang relevan buat window kita
+    if n_usable <= 0:
+        # Seluruh window kita > MAX_FORECAST_DAYS hari dari sekarang.
+        return RainfallForecast(np.round(rain, 1), used_climatology=True)
+
+    # Kalau n_usable < n_days, sisa hari (ke-17+ dari sekarang) tetap
+    # klimatologi walau API di bawah ini sukses penuh untuk bagian awal.
+    used_climatology = n_usable < n_days
 
     try:
-        import requests
         url = (
             "https://api.open-meteo.com/v1/forecast"
             f"?latitude={LAT}&longitude={LON}"
             "&daily=precipitation_sum&timezone=Asia%2FJakarta"
-            f"&forecast_days={n_api}"
+            f"&forecast_days={request_days}"
         )
         r = requests.get(url, timeout=8)
         r.raise_for_status()
         vals = np.nan_to_num(np.array(
             r.json()["daily"]["precipitation_sum"], dtype=float), nan=0.0)
-        # gabung: API untuk hari awal, klimatologi untuk sisanya
-        rain[:len(vals)] = vals[:n_api]
-    except Exception:
-        pass  # tetap pakai klimatologi penuh
+        # vals[0] = curah hujan hari ini sungguhan; geser sesuai offset
+        # supaya vals[offset_days] cocok dengan dates[0] (= start_date).
+        window_vals = vals[offset_days:offset_days + n_usable]
+        rain[:len(window_vals)] = window_vals
+    except (requests.RequestException, KeyError, ValueError, TypeError) as e:
+        logger.warning(
+            "fetch_rainfall_forecast: gagal ambil data Open-Meteo (%s: %s) "
+            "-- pakai klimatologi sebagai cadangan.",
+            type(e).__name__, e,
+        )
+        used_climatology = True  # seluruh window jatuh ke klimatologi
 
-    return np.round(rain, 1)
+    return RainfallForecast(np.round(rain, 1), used_climatology)
 
 
 def _clean_name(nama: str) -> str:
@@ -182,6 +262,9 @@ def future_exogenous(start_date, n_days=7):
     Bangun DataFrame eksogen untuk n hari ke depan mulai start_date.
     Kolom: date, is_weekend, is_holiday, holiday_window (label), rainfall_mm.
     Window libur kini PER-JENIS (Lebaran lebih panjang dari libur biasa).
+
+    Return (DataFrame, used_climatology) -- used_climatology diteruskan
+    apa adanya dari fetch_rainfall_forecast(), lihat RainfallForecast.
     """
     dates = pd.date_range(start_date, periods=n_days, freq="D")
     years = sorted({d.year for d in dates} | {(start_date.year - 1),
@@ -213,13 +296,14 @@ def future_exogenous(start_date, n_days=7):
     window = [window_label(d) for d in dates]
     rainfall = fetch_rainfall_forecast(start_date, n_days)
 
-    return pd.DataFrame({
+    df = pd.DataFrame({
         "date": dates,
         "is_weekend": is_weekend,
         "is_holiday": is_holiday,
         "holiday_window": window,
-        "rainfall_mm": rainfall,
+        "rainfall_mm": rainfall.values,
     })
+    return df, rainfall.used_climatology
 
 
 def list_holidays_with_window(years):

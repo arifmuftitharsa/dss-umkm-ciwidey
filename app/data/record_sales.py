@@ -61,7 +61,10 @@ def record_one(product_id: str, product_name: str, tanggal, qty: int):
                        f"dicatat berikutnya: {nxt.date()}.")
 
     # tanggal == nxt -> valid
-    fx = weather.future_exogenous(tanggal, 1).iloc[0]
+    # used_climatology: disiapkan untuk Minggu 3/T-19, belum dipakai di sini
+    # -- lihat data/weather.py.
+    fx_df, used_climatology = weather.future_exogenous(tanggal, 1)
+    fx = fx_df.iloc[0]
     baris = {
         "date": tanggal.strftime("%Y-%m-%d"),
         "product_id": product_id,
