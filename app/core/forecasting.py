@@ -87,17 +87,12 @@ def forecast_future(df, product_id, model_key=MODEL_TERBAIK, horizon=None):
         mu = PRODUK[product_id]["mu"]
         yhat = np.full(HORIZON, mu, dtype=float)
     else:
-        # Komponen noise eps pada model generasi data (Sec. 3.2.2, sigma = 10% mu)
-        # ditambahkan kembali agar forecast hari biasa tidak identik persis.
-        mu = PRODUK[product_id]["mu"]
-        noise_rng = np.random.default_rng(42 + sum(ord(c) for c in product_id))
         series = list(qty_hist)
         yhat = []
         for _, r in fx.iterrows():
             feat = F.build_feature_row(
                 series, r.date, r.is_weekend, r.is_holiday, r.holiday_window, r.rainfall_mm)
             pred = float(model.predict(np.array([feat]))[0])
-            pred = pred + noise_rng.normal(0, 0.10 * mu)   # ε ~ N(0, 0.1μ)
             pred = max(0.0, round(pred))
             yhat.append(pred)
             series.append(pred)
