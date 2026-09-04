@@ -18,8 +18,8 @@ Detail penuh tiap temuan ada di brief. Ringkasan cepat:
 
 | # | Temuan | Prioritas |
 |---|--------|-----------|
-| T-1 | `data/record_sales.py` kunci tanggal di 2025-12-31, tolak lompatan | KRITIS — blocker demo |
-| T-2 | `core/forecasting.py` tambah noise acak ke prediksi (kosmetik) | KRITIS — hapus 2 baris |
+| T-1 | `data/record_sales.py` kunci tanggal di 2025-12-31, tolak lompatan. **DIPERBARUI 4 Sept:** widget UI dikunci min=max, pengguna TIDAK PERNAH melihat pesan error sama sekali — lebih parah dari deskripsi awal | KRITIS — blocker demo mutlak |
+| T-2 | `core/forecasting.py` tambah noise acak ke prediksi (kosmetik). **DIKONFIRMASI 4 Sept di UI:** 2 reload kondisi identik hasilkan total beda (502 vs 498 jar) | KRITIS — hapus 2 baris |
 | T-3 | Sigma/safety stock dari konstanta literatur, bukan error model nyata | TINGGI — akar stockout |
 | T-4 | Produk baru via dashboard: KeyError, tidak masuk hitungan bahan | KRITIS |
 | T-5 | GUGUR — scaler aman, sudah dibungkus Pipeline di `.joblib` | selesai, tidak perlu kerja |
@@ -37,6 +37,19 @@ Detail penuh tiap temuan ada di brief. Ringkasan cepat:
 | T-16 | Formula demand di `generate_dataset.py` multiplicative, skripsi Pers. 3.1 tulis aditif — beda struktur matematis | RENDAH, akademis saja |
 | T-17 | `holidays==0.98` di repo vs 0.101 diverifikasi skripsi; nama file `requirementsumkm.txt` bukan `requirements.txt` | RENDAH |
 | T-18 | Repo tak 100% reproduksi Tabel 4.7 (demand P001) walau seed=42 sama — kode direvisi setelah tabel final skripsi dibuat | RENDAH, jangan asumsikan retraining = angka skripsi identik |
+| T-19 | Kartu "Akurasi 92%/92,1%" tampil mencolok ke pengguna di 2 halaman (ditemukan 4 Sept saat uji UI langsung) | TINGGI — pelanggaran aturan langsung, mudah diperbaiki |
+| T-20 | `pandas`/`numpy` floor version resolve ke lompatan mayor (pandas 2.x→3.0.5) belum diuji, sama pola risiko dengan alasan pin xgboost/sklearn | SEDANG — verifikasi atau pin persis sebelum deploy |
+
+## Status commit progres (update tiap ada commit baru)
+
+| Commit | Isi | Tanggal |
+|--------|-----|---------|
+| `9e81251` | Commit pertama, gabungan app/model/dataset-gen | 4 Sept 2026 |
+| `0865103` | Tambah README.md (riwayat + atribusi) | 4 Sept 2026 |
+| `8ddd1c0` | T-8: requirements.txt lengkap (xgboost/sklearn dipin persis, lainnya floor) | 4 Sept 2026 |
+
+Evidence "sebelum perbaikan" direkam SEBELUM T-1/T-2 disentuh — evidence bersifat write-once,
+jangan diedit setelah direkam.
 
 ## Aturan kerja (sama seperti project Claude.ai)
 
@@ -48,8 +61,78 @@ Detail penuh tiap temuan ada di brief. Ringkasan cepat:
 6. Belajar konsep baru dari nol → guided learning, logika dulu.
 7. Perubahan besar butuh bukti sebelum-sesudah (screenshot atau angka) untuk laporan.
 8. Kalibrasi inventori (T-3, T-12), skala tenant, dan status akademis pekerjaan ini —
-   **belum final diputuskan** (lihat Bagian 6 brief). Tanya Arif dulu kalau kerjaan bergantung
-   pada ini, jangan asumsikan sudah selesai.
+   **sudah final**: ini BUKAN skripsi Arif, murni pengabdian masyarakat (lihat Bagian 6
+   brief poin #9). Kalibrasi inventori masih menunggu keputusan siapa mengerjakan.
+9. **Clean Code dan SOLID Principles WAJIB diterapkan ketat pada setiap kode yang ditulis
+   atau diedit** — ini bukan preferensi opsional, ini syarat wajib:
+   - Single Responsibility: satu fungsi/kelas satu tanggung jawab. Kalau satu fungsi
+     melakukan lebih dari satu hal (misal: ambil data DAN hitung DAN format tampilan),
+     pecah jadi beberapa fungsi.
+   - Open/Closed: struktur kode agar penambahan fitur baru (misal produk baru, temuan
+     T-4) tidak memaksa mengubah logika inti yang sudah teruji — perluas, jangan modifikasi
+     yang sudah benar.
+   - Liskov, Interface Segregation, Dependency Inversion: relevan terutama kalau ada
+     abstraksi/kelas — jangan buat interface gemuk, jangan hardcode dependency konkret
+     kalau bisa di-inject.
+   - Penamaan variabel/fungsi jelas dan deskriptif (hindari nama seperti `df`, `x`, `tmp`
+     kalau konteksnya penting dipahami pembaca lain).
+   - Hindari magic number/string — jadikan konstanta bernama (lihat T-3: `mape_ref` hardcoded
+     adalah contoh pelanggaran ini yang harus dihindari saat menulis kode baru).
+   - Setiap kali menulis atau mengedit kode, tunjukkan secara eksplisit bagaimana perubahan
+     itu menerapkan prinsip di atas — jangan asumsikan sudah otomatis clean tanpa dijelaskan.
+   - Kalau kode existing yang diperbaiki (misal saat mengerjakan T-1/T-2/T-3/T-12) melanggar
+     SOLID/clean code, perbaiki sekalian strukturnya, bukan cuma tambal fungsional — tapi
+     laporkan dulu rencana refactor-nya sebelum eksekusi, jangan diam-diam mengubah struktur
+     besar tanpa approval.
+
+## Delapan prinsip rekayasa perangkat lunak — WAJIB dipertimbangkan sebelum planning & coding
+
+Ini bukan daftar opsional untuk dipilih sebagian — pertimbangkan SEMUA delapan ini setiap kali
+akan membuat plan atau menulis kode, walau kesimpulannya "belum relevan di tahap ini".
+
+1. **C4 Model (dokumentasi arsitektur)** — 4 level: Context, Container, Component, Code.
+   Prinsip: gambar/dokumentasi berbeda untuk audiens berbeda (stakeholder non-teknis vs
+   developer baru vs orang yang baca kode langsung). Saat menulis dokumentasi arsitektur
+   proyek ini (Minggu 4, brief Bagian 5), strukturkan mengikuti level ini, jangan campur
+   semua level jadi satu dokumen datar.
+
+2. **CI/CD** — Build → Test otomatis (CI) → Release + Deploy (Delivery/Deployment). Tools
+   untuk Python: pytest untuk testing. Sebelum deploy ke hosting (Minggu 3), pertimbangkan
+   pipeline ini walau sesederhana GitHub Actions dasar — jangan deploy manual tanpa test
+   otomatis kalau ada waktu untuk setup ini.
+
+3. **Testing prioritas berdasarkan risiko** — bukan asal test semua fungsi. Fokus ke fungsi
+   yang PALING KRITIS atau yang PERNAH jadi sumber bug. Untuk proyek ini: prioritas testing
+   ada di modul yang sudah terbukti jadi sumber masalah — `core/inventory.py` (T-3, T-12,
+   sumber stockout 78%), `core/forecasting.py` (T-2, noise acak), `data/record_sales.py`
+   (T-1, blocker demo). Jangan buang waktu test exhaustive ke bagian UI yang low-risk dulu.
+
+4. **Audit keamanan sebelum rilis** — cek sistematis sebelum tag versi/rilis resmi: apakah
+   ada secret ter-commit (API key, password), apakah ada celah dikenal (SSRF, path
+   traversal, dll). WAJIB dilakukan sebelum deploy ke hosting publik (Minggu 3) dan sebelum
+   setiap tag versi resmi ke depan.
+
+5. **Pemisahan `docs/` vs `notes/`** — `docs/` untuk dokumentasi formal stabil (arsitektur,
+   cara install, panduan pengguna). `notes/` untuk catatan kerja yang sering berubah (status
+   progress, keputusan yang baru diambil, TODO). Terapkan pemisahan ini di struktur folder
+   `dss-umkm-ciwidey/docs/` — pertimbangkan tambah `notes/` terpisah kalau belum ada.
+
+6. **Fail-fast di level aplikasi** — aplikasi harus MENOLAK start kalau konfigurasi penting
+   hilang/salah, bukan diam-diam jalan dengan konfigurasi salah lalu gagal di tengah jalan
+   dengan cara membingungkan. Terapkan ini saat menangani T-8 (dependency hilang harus
+   memunculkan error jelas saat startup, bukan gagal senyap saat load model di tengah
+   pemakaian) dan config sensitif lain (API key Open-Meteo kalau ada, koneksi DB, dll).
+
+7. **Optimasi dependency (hapus yang tidak terpakai)** — audit dependency secara berkala,
+   jangan biarkan dependency mati menumpuk. Terapkan saat kerjakan T-8: HANYA masukkan paket
+   yang benar-benar dipakai (sudah dilakukan dengan benar — prophet/statsmodels/optuna
+   dikeluarkan karena terverifikasi tidak dipakai runtime `app/`). Audit ulang tiap kali ada
+   perubahan besar ke kode.
+
+8. **Version control yang rapi** — tag semantic (contoh: `v1.0.0`), commit message jelas dan
+   deskriptif (bukan "update" atau "fix"), hindari commit yang tidak jelas maksudnya. Sudah
+   diterapkan sejauh ini (commit README, commit requirements.txt) — pertahankan pola ini
+   untuk SETIAP commit ke depan tanpa kecuali.
 
 ## Struktur folder lokal (referensi baca-saja, sudah terverifikasi)
 
@@ -78,7 +161,10 @@ dss-umkm-ciwidey/          (nama baru, publik, milik Arif)
 ├── app/                   (isi dss-umkm)
 ├── model/                 (isi dss-model)
 ├── dataset-gen/            (isi generasi-dataset-umkm)
-├── docs/
+├── docs/                  dokumentasi stabil — arsitektur, cara install (diisi Minggu 4)
+├── notes/                 catatan kerja yang sering berubah — status, keputusan
+├── evidence/              snapshot bukti sebelum/sesudah, write-once, immutable,
+│                          diberi nama tanggal (misal 2026-09-04-sebelum-perbaikan/)
 ├── README.md              (wajib jelaskan riwayat: melanjutkan skripsi Felix, link 3 repo asli)
 └── CLAUDE.md
 ```
