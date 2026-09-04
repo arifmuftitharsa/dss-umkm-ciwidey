@@ -120,15 +120,3 @@ def inventory_table(df) -> pd.DataFrame:
             "Saran Order (≈EOQ)": round(Q, 0) if butuh_order else 0,
         })
     return pd.DataFrame(rows)
-
-
-def simulasi_skenario(df) -> dict:
-    """
-    Ringkasan evaluasi sistem (Sec. 3.6.5): Skenario A (manual) vs B (sistem).
-    Angka ilustratif prototipe yang konsisten dengan klaim literatur
-    (Calderon 2025: inventori turun ~50%, MAE turun). Pada Bab IV diisi hasil riil.
-    """
-    return {
-        "A": {"nama": "Manual (tanpa sistem)", "stockout_rate": 18.5, "avg_inventory_days": 11.4},
-        "B": {"nama": "Dengan DSS (EOQ/ROP)",  "stockout_rate": 4.2,  "avg_inventory_days": 6.1},
-    }
