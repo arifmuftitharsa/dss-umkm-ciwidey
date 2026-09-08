@@ -62,6 +62,20 @@ h1,h2,h3,h4 {{ font-family:'Source Serif 4',Georgia,serif; color:var(--teks);
 section[data-testid="stSidebar"] {{ background:var(--surface); border-right:1px solid var(--garis); }}
 section[data-testid="stSidebar"] * {{ color:var(--teks) !important; }}
 
+/* sidebar-flex -- satu kolom flex membungkus logo+info+watermark. min-height
+   perkiraan tinggi viewport dikurangi navigasi bawaan st.navigation di atasnya
+   (4 halaman -> diukur ~255px lewat DOM saat testing) supaya watermark
+   (margin-top:auto) terdorong ke dasar sidebar tanpa celah kosong janggal,
+   TANPA position:fixed yang dulu lepas dari isi di atasnya (akar masalah
+   "sidebar kosong"). Dikurangi 280px (sedikit lebih besar dari 255px terukur)
+   supaya ada margin aman, watermark tak terpotong di viewport umum. */
+.sidebar-flex {{ display:flex; flex-direction:column; min-height:calc(100vh - 280px); }}
+.sidebar-info {{ background:var(--kartu); border:1px solid var(--garis);
+  border-left:3px solid var(--primer); border-radius:6px; padding:14px 16px;
+  font-size:.78rem; line-height:1.6; }}
+.sidebar-watermark {{ margin-top:auto; padding-top:1rem; font-size:.7rem;
+  color:var(--teks-lemah); }}
+
 /* KPI card -- border kiri berwarna (konsisten dgn action-card), TANPA shadow/radius
    besar seragam (hindari pola "SaaS-card kit"). Label sentence case, bukan ALL-CAPS. */
 .kpi {{ background:var(--kartu); border:1px solid var(--garis); border-left:3px solid var(--primer);

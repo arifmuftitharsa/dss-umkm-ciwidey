@@ -58,25 +58,27 @@ pages = [
 # hamburger/collapsible di layar sempit tanpa CSS/JS custom.
 nav = st.navigation(pages, position="sidebar")
 
-# --- SIDEBAR -- info tambahan, dirender DI BAWAH daftar navigasi bawaan
+# --- SIDEBAR -- info tambahan, dirender DI BAWAH daftar navigasi bawaan.
+# Satu blok flex-column (bukan beberapa st.markdown terpisah) supaya
+# margin-top:auto pada watermark bisa mendorongnya ke dasar SIDEBAR --
+# menutup akar masalah "ruang kosong janggal" (dulu watermark position:fixed
+# terlepas dari isi di atasnya, sekarang jadi bagian layout normal).
 with st.sidebar:
     st.markdown(
+        f"<div class='sidebar-flex'>"
+        f"<div>"
         f"<div style='font-family:Source Serif 4,serif;font-size:1.25rem;"
         f"font-weight:700;color:{WARNA['teks']};line-height:1.2;margin-top:.5rem;'>{APP_NAME}</div>"
         f"<div style='color:{WARNA['teks_lemah']};font-size:.8rem;margin-bottom:1rem;'>"
-        "Bantu UMKM Kelola Stok</div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("---")
-    st.markdown(
-        f"<div style='font-size:.78rem;color:{WARNA['teks_lemah']};line-height:1.5;'>"
+        "Bantu UMKM Kelola Stok</div>"
+        "<hr style='margin:0 0 1rem;'>"
+        f"<div class='sidebar-info'>"
         f"<b>Studi kasus</b><br>{STUDI_KASUS['lokasi']}<br><br>"
-        f"<b>Rentang Waktu</b><br>7 hari ke depan (utama) serta 14/30 hari ke depan</div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        f"<div style='position:fixed;bottom:14px;font-size:.7rem;color:{WARNA['teks_lemah']};'>"
-        "Prototipe penelitian S1, bukan data produksi</div>",
+        f"<b>Rentang Waktu</b><br>7 hari ke depan (utama) serta 14/30 hari ke depan"
+        f"</div>"
+        f"</div>"
+        f"<div class='sidebar-watermark'>Prototipe penelitian S1, bukan data produksi</div>"
+        f"</div>",
         unsafe_allow_html=True,
     )
 

@@ -200,9 +200,6 @@ def render():
         st.markdown("**Riwayat penjualan (terbaru di atas):**")
         full = record_sales.last_records(pid_sel, n=10000).iloc[::-1]
         st.dataframe(full, use_container_width=True, hide_index=True, height=320)
-        st.caption("ℹ️ Mencatat penjualan memperkaya riwayat (lag/rolling) sehingga "
-                   "perkiraan berikutnya lebih relevan. Bobot model diperbarui via "
-                   "pelatihan ulang berkala (pengembangan lanjutan).")
 
     # --- TAB 5: WINDOW LIBUR
     with tab5:
@@ -234,7 +231,3 @@ def render():
         st.caption("Window dihitung otomatis dari pengaturan di atas.")
         st.dataframe(weather.list_holidays_with_window([2025, 2026]),
                      use_container_width=True, hide_index=True, height=300)
-
-    st.divider()
-    st.caption("ℹ️ Data tersimpan di database lokal (data/dss_umkm.db). "
-               "Pada deployment, diganti PostgreSQL tanpa ubah kode (Sec. 3.7.1).")
