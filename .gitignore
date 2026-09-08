@@ -12,3 +12,7 @@ venv/
 # control kode. Tiap environment (dev/deploy) membuat DB sendiri saat pertama
 # kali dijalankan.
 app/data/dss_umkm.db
+
+# Config tooling development lokal (browser-preview launch config) -- path
+# spesifik environment lokal, tak relevan untuk siapa pun yang clone repo ini.
+.claude/

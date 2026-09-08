@@ -107,15 +107,23 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
                               "<br>Terjual: %{y} " + satuan + "<extra></extra>",
             ))
 
+    # height dinaikkan 380->460 -- rangeslider (di bawah) butuh ruang
+    # vertikal sendiri, kalau height dibiarkan sama area plot utama
+    # tergencet. thickness=.08 (bukan default .15) supaya jejak vertikal
+    # tambahan seminim mungkin, relevan terutama di layar mobile.
     lay = _layout(hovermode="x unified")
-    fig.update_layout(**lay, height=380, yaxis_title=f"Unit ({satuan})")
+    fig.update_layout(**lay, height=460, yaxis_title=f"Unit ({satuan})")
     # Tahap B: zoom sumbu-x DIAKTIFKAN (fixedrange=False) -- pengguna bisa
     # drag-select memperbesar area padat untuk lihat detail tanggal harian
     # (riwayat 90 hari + horizon bikin tick otomatis Plotly jadi ~2 mingguan,
     # keluhan "rentang waktu tak bisa dibuat detail"). Sumbu-y TETAP terkunci
     # supaya proporsi jumlah unit tak berubah-ubah saat zoom-x, mencegah
     # kesan menyesatkan (grafik "melonjak" cuma karena rescale otomatis).
-    fig.update_xaxes(**_GRID, fixedrange=False, tickformat=_TICKFORMAT_TGL)
+    # rangeslider_visible: kontrol geser/perbesar EKSPLISIT lewat handle
+    # visual di bawah grafik -- berdampingan dgn drag-select, bukan ganti.
+    fig.update_xaxes(**_GRID, fixedrange=False, tickformat=_TICKFORMAT_TGL,
+                     title="Tanggal",
+                     rangeslider=dict(visible=True, thickness=.08))
     fig.update_yaxes(**_GRID, fixedrange=True)
     return fig
 
