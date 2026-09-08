@@ -42,7 +42,7 @@ def render(df):
     else:
         for _, r in perlu.iterrows():
             level = "kritis" if r.Status == "Kritis" else "waspada"
-            judul = f"{r['Bahan Baku']} — beli ± {r['Saran Order (≈EOQ)']:.0f} {r['Satuan']}"
+            judul = f"{r['Bahan Baku']}, beli ± {r['Saran Order (≈EOQ)']:.0f} {r['Satuan']}"
             detail = (f"Stok sekarang {r['Stok']} {r['Satuan']}, "
                       f"batas aman {r['ROP']:.0f} {r['Satuan']}. "
                       f"Pesanan biasanya tiba {r['Lead Time (hari)']} hari "
@@ -59,12 +59,11 @@ def render(df):
     tampil["Batas aman"] = tampil["ROP"].round().astype(int).astype(str) + " " + tampil["Satuan"]
     tampil["Jumlah beli ideal (EOQ)"] = tampil["EOQ"].round().astype(int).astype(str) + " " + tampil["Satuan"]
     tampil["Pakai per hari"] = tampil["Kebutuhan/hari (D̄)"].round(1).astype(str) + " " + tampil["Satuan"]
-    st.markdown(
-        tampil[["Bahan Baku", "Stok sekarang", "Batas aman", "Jumlah beli ideal (EOQ)",
-                "Pakai per hari", "Kondisi"]].to_html(escape=False, index=False),
-        unsafe_allow_html=True,
-    )
-    st.caption("Batas aman = ROP (titik pesan ulang) · Jumlah beli ideal = EOQ "
+    tabel_html = tampil[["Bahan Baku", "Stok sekarang", "Batas aman",
+                        "Jumlah beli ideal (EOQ)", "Pakai per hari",
+                        "Kondisi"]].to_html(escape=False, index=False)
+    st.markdown(f'<div class="tabel-scroll">{tabel_html}</div>', unsafe_allow_html=True)
+    st.caption("Batas aman = ROP (titik pesan ulang), jumlah beli ideal = EOQ "
                "(kuantitas optimal sekali pesan).")
 
     st.markdown("<br>", unsafe_allow_html=True)

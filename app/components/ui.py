@@ -28,6 +28,17 @@ def tanggal_id(dt, hari_penuh: bool = True) -> str:
     return f"{hari[:3]} {dt.day:02d} {bulan}"
 
 
+def _tint(hex_color: str, alpha: float) -> str:
+    """hex '#RRGGBB' -> rgba() CSS, dihitung dari token WARNA. BUKAN hardcode
+    tint terpisah -- bug Tahap 2 (rgba hijau lama di charts.py) berulang di
+    sini: background pill status dulu di-hex manual cocok warna kritis/
+    waspada/aman LAMA, terlewat saat token ganti. Dihitung ulang tiap kali
+    supaya otomatis ikut kalau token berubah lagi nanti."""
+    h = hex_color.lstrip("#")
+    r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({r},{g},{b},{alpha})"
+
+
 _CSS = f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
@@ -63,9 +74,9 @@ section[data-testid="stSidebar"] * {{ color:var(--teks) !important; }}
 /* status pill */
 .pill {{ display:inline-block; padding:3px 11px; border-radius:999px;
   font-size:.74rem; font-weight:700; letter-spacing:.02em; }}
-.pill.kritis  {{ background:#FBE6E9; color:var(--kritis); }}
-.pill.waspada {{ background:#FBF0DE; color:var(--waspada); }}
-.pill.aman    {{ background:#E2F3EC; color:var(--aman); }}
+.pill.kritis  {{ background:{_tint(WARNA['kritis'], .12)}; color:var(--kritis); }}
+.pill.waspada {{ background:{_tint(WARNA['waspada'], .12)}; color:var(--waspada); }}
+.pill.aman    {{ background:{_tint(WARNA['aman'], .12)}; color:var(--aman); }}
 
 /* action card (pengganti alert emoji) -- radius kecil konsisten dgn KPI, tanpa shadow */
 .action {{ background:var(--kartu); border:1px solid var(--garis); border-left:3px solid;
@@ -90,6 +101,20 @@ section[data-testid="stSidebar"] * {{ color:var(--teks) !important; }}
 
 table {{ font-size:.9rem; }}
 .stDataFrame {{ border:1px solid var(--garis); border-radius:8px; }}
+
+/* tabel HTML custom (to_html manual, mis. tabel status pill -- st.dataframe()
+   TAK bisa render HTML/warna per sel dengan mudah, jadi tabel ini tetap HTML
+   mentah, bukan diganti). Dibungkus .tabel-scroll untuk scroll horizontal di
+   mobile (tabel HTML lepas dari mekanisme resize/scroll otomatis st.dataframe). */
+.tabel-scroll {{ overflow-x:auto; border:1px solid var(--garis); border-radius:8px; }}
+.tabel-scroll table {{ border-collapse:collapse; width:100%; margin:0; }}
+.tabel-scroll table, .tabel-scroll th, .tabel-scroll td {{ border:none; }}
+.tabel-scroll th {{ text-align:left; padding:10px 14px; background:var(--surface);
+  color:var(--teks-lemah); font-weight:600; font-size:.83rem;
+  border-bottom:1px solid var(--garis); white-space:nowrap; }}
+.tabel-scroll td {{ padding:9px 14px; border-bottom:1px solid var(--garis);
+  white-space:nowrap; }}
+.tabel-scroll tr:last-child td {{ border-bottom:none; }}
 
 /* --- RESPONSIF -- breakpoint tablet/mobile. st.columns() Streamlit defaultnya
    selalu flex-row (berdampingan) walau layar sempit; dipaksa flex-column di
