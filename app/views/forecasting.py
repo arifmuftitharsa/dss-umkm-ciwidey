@@ -72,13 +72,13 @@ def render(df):
 
     def alasan(r):
         if r.is_holiday == 1:
-            return "Hari libur — ramai"
+            return "Hari libur, ramai"
         if r.holiday_window in (-1, 1, 2):
             return "Sekitar hari libur"
         if r.is_weekend == 1:
-            return "Akhir pekan — ramai"
+            return "Akhir pekan, ramai"
         if r.rainfall_mm > 20:
-            return "Hujan — cenderung sepi"
+            return "Hujan, cenderung sepi"
         return "Hari biasa"
 
     show = pd.DataFrame({
