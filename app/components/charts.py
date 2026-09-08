@@ -107,23 +107,45 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
                               "<br>Terjual: %{y} " + satuan + "<extra></extra>",
             ))
 
-    # height dinaikkan 380->460 -- rangeslider (di bawah) butuh ruang
-    # vertikal sendiri, kalau height dibiarkan sama area plot utama
-    # tergencet. thickness=.08 (bukan default .15) supaya jejak vertikal
-    # tambahan seminim mungkin, relevan terutama di layar mobile.
-    lay = _layout(hovermode="x unified")
-    fig.update_layout(**lay, height=460, yaxis_title=f"Unit ({satuan})")
+    # height 400 -- rangeselector (tombol preset, di atas plot) butuh ruang
+    # ekstra dibanding versi tanpa kontrol tambahan (380), tapi lebih pendek
+    # dari versi rangeslider (460) yang sudah dihapus (Arif: kurang jelas
+    # fungsinya). margin.t dinaikkan supaya baris tombol tak mepet legend.
+    lay = _layout(hovermode="x unified", margin=dict(l=10, r=10, t=50, b=10))
+    fig.update_layout(**lay, height=400, yaxis_title=f"Unit ({satuan})")
     # Tahap B: zoom sumbu-x DIAKTIFKAN (fixedrange=False) -- pengguna bisa
     # drag-select memperbesar area padat untuk lihat detail tanggal harian
     # (riwayat 90 hari + horizon bikin tick otomatis Plotly jadi ~2 mingguan,
     # keluhan "rentang waktu tak bisa dibuat detail"). Sumbu-y TETAP terkunci
     # supaya proporsi jumlah unit tak berubah-ubah saat zoom-x, mencegah
     # kesan menyesatkan (grafik "melonjak" cuma karena rescale otomatis).
-    # rangeslider_visible: kontrol geser/perbesar EKSPLISIT lewat handle
-    # visual di bawah grafik -- berdampingan dgn drag-select, bukan ganti.
-    fig.update_xaxes(**_GRID, fixedrange=False, tickformat=_TICKFORMAT_TGL,
-                     title="Tanggal",
-                     rangeslider=dict(visible=True, thickness=.08))
+    #
+    # rangeselector (tombol preset "7/30 Hari Terakhir", "Semua Data") GANTI
+    # rangeslider bawah -- Arif: rangeslider kurang jelas fungsinya utk
+    # pengguna awam (perlu paham drag). Tombol klik langsung, pola familiar
+    # (mirip filter rentang di aplikasi lain), berdampingan dgn drag-select
+    # zoom yang sudah ada (tombol pilih rentang PASTI, drag untuk detail
+    # bebas -- dua cara saling melengkapi, bukan saling gantikan).
+    #
+    # font.size title dinaikkan 13(bawaan)->16 -- perbaikan T-lanjutan:
+    # "Tanggal" pada 13-14px tampak seperti "Tanqqal" (kluster huruf ganda
+    # "gg" mengecil jadi ambigu di font Plus Jakarta Sans ukuran kecil).
+    # Dikonfirmasi lewat inspeksi DOM SVG (data-unformatted="Tanggal" --
+    # data/teks sudah benar sejak awal, murni masalah keterbacaan ukuran,
+    # BUKAN tumpang tindih posisi dengan elemen lain seperti dugaan awal).
+    fig.update_xaxes(
+        **_GRID, fixedrange=False, tickformat=_TICKFORMAT_TGL,
+        title=dict(text="Tanggal", font=dict(size=16)),
+        rangeselector=dict(
+            buttons=[
+                dict(count=7, label="7 Hari Terakhir", step="day", stepmode="backward"),
+                dict(count=30, label="30 Hari Terakhir", step="day", stepmode="backward"),
+                dict(step="all", label="Semua Data"),
+            ],
+            bgcolor=WARNA["surface"], activecolor=ui.tint(WARNA["primer"], .25),
+            font=dict(size=12, color=WARNA["teks"]),
+        ),
+    )
     fig.update_yaxes(**_GRID, fixedrange=True)
     return fig
 
@@ -141,9 +163,25 @@ def inventory_bar(tbl: pd.DataFrame):
         y=tbl["Bahan Baku"], x=tbl["Stok"], orientation="h",
         marker_color=[warna[s] for s in tbl["Status"]],
         name="Stok saat ini", customdata=sat,
-        text=tbl["Stok"], textposition="outside", cliponaxis=False,
         hovertemplate="<b>%{y}</b><br>Stok: %{x} %{customdata}<extra></extra>",
     ))
+    # Label angka stok dipindah dari text=/textposition="outside" bawaan Bar
+    # ke fig.add_annotation() per baris -- BUKAN sekadar tambal 2 baris yang
+    # kebetulan bentrok (Tepung Terigu, Stroberi Segar). Akar masalahnya
+    # struktural: Plotly render SVG per LAPISAN TIPE trace (semua bar dulu,
+    # baru semua scatter), bukan urutan add_trace() -- jadi marker ROP/EOQ
+    # (scatter, ditambah setelah bar) SELALU tergambar di ATAS label teks
+    # bar, untuk kombinasi data apa pun di masa depan, bukan cuma kasus ini.
+    # Annotation Plotly render di layer PALING ATAS (di atas bar & scatter
+    # keduanya) -- perbaikan pada akar (Open/Closed: aman utk data baru),
+    # bukan cuma pada gejala yang kebetulan ketahuan.
+    for _, row in tbl.iterrows():
+        fig.add_annotation(
+            x=row["Stok"], y=row["Bahan Baku"], text=str(row["Stok"]),
+            showarrow=False, xanchor="left", xshift=6,
+            font=dict(size=13, color=WARNA["teks"]),
+            bgcolor="rgba(255,255,255,.75)",
+        )
     # Marker ROP: WARNA['teks'] (nyaris hitam) -- bukan sekunder abu-abu lagi,
     # kontras rendah di atas bar (terutama bar pendek: Mentega, Tepung
     # Terigu). width/size dinaikkan supaya tetap kelihatan di bar sependek
