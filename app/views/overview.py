@@ -55,49 +55,53 @@ def render(df):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    kiri, kanan = st.columns([1.55, 1])
-    with kiri:
-        # "Produk dengan penjualan tertinggi" (lihat deskripsi section di
-        # bawah) -- dulu hardcode "P003" (T-4: kebetulan itu memang mu
-        # tertinggi di config lama, 80 vs 40/15, tapi statis). Sekarang
-        # dihitung dinamis dari mu di database supaya tetap benar berapa
-        # pun produk ditambah/dihapus lewat dashboard.
-        pid_utama = max(produk, key=lambda pid: produk[pid]["mu"])
-        ui.section(f"Perkiraan Penjualan Produk {produk[pid_utama]['nama']}",
-                   "Produk dengan penjualan tertinggi.")
-        ui.legend([
-            (WARNA["sekunder"], "Penjualan sebelumnya"),
-            (WARNA["primer"], "Perkiraan 7 hari"),
-            (ui.tint(WARNA["primer"], .35), "Rentang kemungkinan"),
-            ("#F4B400", "Hari libur / event"),
-        ])
-        hist, fut, _ = forecast_future(df, pid_utama)
-        st.plotly_chart(charts.forecast_chart(hist, fut, produk[pid_utama]["satuan"]),
-                        use_container_width=True, config=NO_BAR)
-        ui.petunjuk_geser("Geser bagian bawah grafik untuk lihat rentang tanggal lain")
+    # "Yang Perlu Dilakukan" DI ATAS grafik (susunan vertikal, bukan
+    # berdampingan kiri-kanan lagi) -- keputusan Arif: aksi yang perlu
+    # dilakukan lebih penting dilihat duluan daripada grafik. Isi kartu
+    # (kalimat) TAK diubah, cuma posisinya dipindah.
+    ui.section("Yang Perlu Dilakukan", "Tindakan minggu ini")
+    if len(kritis) == 0 and len(waspada) == 0:
+        ui.action("Semua stok aman", "Tidak ada pembelian mendesak minggu ini.", "aman")
+    for _, r in kritis.iterrows():
+        ui.action(
+            f"Segera beli {r['Bahan Baku']}",
+            f"Stok tinggal {r['Stok']} {r['Satuan']}, sudah di bawah batas aman. "
+            f"Disarankan beli sekitar {r['Saran Order (≈EOQ)']:.0f} {r['Satuan']}. "
+            f"Pesanan biasanya tiba {r['Lead Time (hari)']} hari.",
+            "kritis")
+    for _, r in waspada.iterrows():
+        ui.action(
+            f"{r['Bahan Baku']} mulai menipis",
+            f"Stok {r['Stok']} {r['Satuan']}. Siapkan pembelian dalam beberapa hari.",
+            "waspada")
+    if _ada_spike(df, produk):
+        ui.action(
+            "Perkiraan lonjakan penjualan minggu ini",
+            "Ada akhir pekan atau hari libur. Penjualan cenderung naik, "
+            "siapkan stok lebih banyak.",
+            "info")
 
-    with kanan:
-        ui.section("Yang Perlu Dilakukan", "Tindakan minggu ini")
-        if len(kritis) == 0 and len(waspada) == 0:
-            ui.action("Semua stok aman", "Tidak ada pembelian mendesak minggu ini.", "aman")
-        for _, r in kritis.iterrows():
-            ui.action(
-                f"Segera beli {r['Bahan Baku']}",
-                f"Stok tinggal {r['Stok']} {r['Satuan']}, sudah di bawah batas aman. "
-                f"Disarankan beli sekitar {r['Saran Order (≈EOQ)']:.0f} {r['Satuan']}. "
-                f"Pesanan biasanya tiba {r['Lead Time (hari)']} hari.",
-                "kritis")
-        for _, r in waspada.iterrows():
-            ui.action(
-                f"{r['Bahan Baku']} mulai menipis",
-                f"Stok {r['Stok']} {r['Satuan']}. Siapkan pembelian dalam beberapa hari.",
-                "waspada")
-        if _ada_spike(df, produk):
-            ui.action(
-                "Perkiraan lonjakan penjualan minggu ini",
-                "Ada akhir pekan atau hari libur. Penjualan cenderung naik, "
-                "siapkan stok lebih banyak.",
-                "info")
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # "Produk dengan penjualan tertinggi" (lihat deskripsi section di
+    # bawah) -- dulu hardcode "P003" (T-4: kebetulan itu memang mu
+    # tertinggi di config lama, 80 vs 40/15, tapi statis). Sekarang
+    # dihitung dinamis dari mu di database supaya tetap benar berapa
+    # pun produk ditambah/dihapus lewat dashboard.
+    pid_utama = max(produk, key=lambda pid: produk[pid]["mu"])
+    ui.section(f"Perkiraan Penjualan Produk {produk[pid_utama]['nama']}",
+               "Produk dengan penjualan tertinggi.")
+    ui.legend([
+        (WARNA["sekunder"], "Penjualan sebelumnya"),
+        (WARNA["primer"], "Perkiraan 7 hari"),
+        (ui.tint(WARNA["primer"], .35), "Rentang kemungkinan"),
+        ("#F4B400", "Hari libur / event"),
+    ])
+    hist, fut, _ = forecast_future(df, pid_utama)
+    st.plotly_chart(charts.forecast_chart(hist, fut, produk[pid_utama]["satuan"]),
+                    use_container_width=True, config=NO_BAR)
+    ui.label_sumbu_tanggal()
+    ui.petunjuk_geser("Bisa digeser untuk lihat rentang tanggal lain")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
