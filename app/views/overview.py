@@ -72,7 +72,9 @@ def render(df):
             ("#F4B400", "Hari libur / event"),
         ])
         hist, fut, _ = forecast_future(df, pid_utama)
-        st.plotly_chart(charts.forecast_chart(hist, fut, produk[pid_utama]["satuan"]),
+        n_hari = ui.rentang_riwayat_buttons("ringkasan")
+        hist_tampil = ui.filter_riwayat_hari(hist, n_hari)
+        st.plotly_chart(charts.forecast_chart(hist_tampil, fut, produk[pid_utama]["satuan"]),
                         use_container_width=True, config=NO_BAR)
 
     with kanan:

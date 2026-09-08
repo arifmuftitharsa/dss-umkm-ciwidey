@@ -196,6 +196,55 @@ def legend(items: list):
     st.markdown(f'<div class="chart-legend">{chips}</div>', unsafe_allow_html=True)
 
 
+_PRESET_RENTANG = {"7 Hari Terakhir": 7, "30 Hari Terakhir": 30, "Semua Data": None}
+
+
+def rentang_riwayat_buttons(state_key: str) -> int | None:
+    """Tombol preset rentang riwayat (7/30 hari/Semua Data) -- pengganti
+    rangeselector Plotly bawaan (terbukti salah hitung: stepmode="backward"
+    mengukur dari batas atas AXIS yang sudah di-pad Plotly, bukan dari
+    tanggal data terakhir sungguhan -- menghasilkan rentang yang sebagian
+    besar kosong). Filter dilakukan di PYTHON sebelum data dikirim ke
+    forecast_chart(), bukan diserahkan ke Plotly, supaya rentang yang
+    dihasilkan selalu tepat sama dengan data yang benar-benar ada.
+
+    state_key: pembeda st.session_state per halaman pemanggil (mis.
+    "ringkasan"/"perkiraan") -- SENGAJA terpisah per halaman, bukan satu
+    state global, supaya pilihan rentang di satu halaman tak diam-diam
+    mengubah tampilan halaman lain yang tak sedang dilihat pengguna.
+
+    Return: jumlah hari (int) atau None ("Semua Data", tak difilter) --
+    dipakai pemanggil untuk memotong riwayat sebelum dikirim ke chart.
+    """
+    full_key = f"rentang_chart_{state_key}"
+    if full_key not in st.session_state:
+        st.session_state[full_key] = "Semua Data"
+
+    cols = st.columns(len(_PRESET_RENTANG))
+    for col, label in zip(cols, _PRESET_RENTANG):
+        aktif = st.session_state[full_key] == label
+        if col.button(label, key=f"btn_{full_key}_{label}",
+                      type="primary" if aktif else "secondary",
+                      use_container_width=True):
+            st.session_state[full_key] = label
+            st.rerun()
+
+    return _PRESET_RENTANG[st.session_state[full_key]]
+
+
+def filter_riwayat_hari(hist: pd.DataFrame, n_hari: int | None) -> pd.DataFrame:
+    """Potong riwayat ke N hari terakhir (berdasar tanggal MAKS di data,
+    bukan tanggal hari ini -- riwayat bisa berhenti di masa lalu). n_hari
+    None -> riwayat dikembalikan utuh (preset "Semua Data"). Dipakai
+    berdampingan dgn rentang_riwayat_buttons() di semua pemanggil
+    forecast_chart() (DRY -- logika potong sama, jangan diduplikasi per
+    halaman)."""
+    if n_hari is None or hist.empty:
+        return hist
+    batas = hist.date.max() - pd.Timedelta(days=n_hari)
+    return hist[hist.date >= batas]
+
+
 def riset_tag(text: str):
     """Penanda section skripsi — HANYA untuk halaman Validasi (penguji)."""
     st.markdown(f'<span class="riset">{text}</span>', unsafe_allow_html=True)

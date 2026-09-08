@@ -67,7 +67,9 @@ def render(df):
         (ui.tint(WARNA["primer"], .35), "Rentang kemungkinan"),
         ("#F4B400", "Hari libur / event"),
     ])
-    st.plotly_chart(charts.forecast_chart(hist, fut, satuan),
+    n_hari = ui.rentang_riwayat_buttons("perkiraan")
+    hist_tampil = ui.filter_riwayat_hari(hist, n_hari)
+    st.plotly_chart(charts.forecast_chart(hist_tampil, fut, satuan),
                     use_container_width=True, config=NO_BAR)
 
     st.markdown("<br>", unsafe_allow_html=True)

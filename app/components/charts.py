@@ -107,12 +107,8 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
                               "<br>Terjual: %{y} " + satuan + "<extra></extra>",
             ))
 
-    # height 400 -- rangeselector (tombol preset, di atas plot) butuh ruang
-    # ekstra dibanding versi tanpa kontrol tambahan (380), tapi lebih pendek
-    # dari versi rangeslider (460) yang sudah dihapus (Arif: kurang jelas
-    # fungsinya). margin.t dinaikkan supaya baris tombol tak mepet legend.
-    lay = _layout(hovermode="x unified", margin=dict(l=10, r=10, t=50, b=10))
-    fig.update_layout(**lay, height=400, yaxis_title=f"Unit ({satuan})")
+    lay = _layout(hovermode="x unified")
+    fig.update_layout(**lay, height=380, yaxis_title=f"Unit ({satuan})")
     # Tahap B: zoom sumbu-x DIAKTIFKAN (fixedrange=False) -- pengguna bisa
     # drag-select memperbesar area padat untuk lihat detail tanggal harian
     # (riwayat 90 hari + horizon bikin tick otomatis Plotly jadi ~2 mingguan,
@@ -120,12 +116,16 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
     # supaya proporsi jumlah unit tak berubah-ubah saat zoom-x, mencegah
     # kesan menyesatkan (grafik "melonjak" cuma karena rescale otomatis).
     #
-    # rangeselector (tombol preset "7/30 Hari Terakhir", "Semua Data") GANTI
-    # rangeslider bawah -- Arif: rangeslider kurang jelas fungsinya utk
-    # pengguna awam (perlu paham drag). Tombol klik langsung, pola familiar
-    # (mirip filter rentang di aplikasi lain), berdampingan dgn drag-select
-    # zoom yang sudah ada (tombol pilih rentang PASTI, drag untuk detail
-    # bebas -- dua cara saling melengkapi, bukan saling gantikan).
+    # Rangeselector Plotly bawaan (tombol preset "7/30 Hari Terakhir")
+    # DIHAPUS -- terbukti salah hitung: stepmode="backward" mengukur rentang
+    # dari batas atas AXIS yang sudah di-pad Plotly (bukan tanggal data
+    # terakhir sungguhan), menghasilkan window yang sebagian besar kosong
+    # (dikonfirmasi via DOM: klik "7 Hari Terakhir" -> range [06/01, 13/01]
+    # padahal data forecast terakhir cuma sampai 07/01). Preset SEKARANG
+    # jadi tombol Streamlit biasa (ui.rentang_riwayat_buttons(), dipanggil
+    # pemanggil di views/) yang MEMFILTER DATA DI PYTHON sebelum dikirim ke
+    # sini -- chart ini terima data yang sudah tepat, bukan "instruksi
+    # filter" yang diserahkan ke Plotly untuk dihitung sendiri.
     #
     # font.size title dinaikkan 13(bawaan)->16 -- perbaikan T-lanjutan:
     # "Tanggal" pada 13-14px tampak seperti "Tanqqal" (kluster huruf ganda
@@ -136,15 +136,6 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
     fig.update_xaxes(
         **_GRID, fixedrange=False, tickformat=_TICKFORMAT_TGL,
         title=dict(text="Tanggal", font=dict(size=16)),
-        rangeselector=dict(
-            buttons=[
-                dict(count=7, label="7 Hari Terakhir", step="day", stepmode="backward"),
-                dict(count=30, label="30 Hari Terakhir", step="day", stepmode="backward"),
-                dict(step="all", label="Semua Data"),
-            ],
-            bgcolor=WARNA["surface"], activecolor=ui.tint(WARNA["primer"], .25),
-            font=dict(size=12, color=WARNA["teks"]),
-        ),
     )
     fig.update_yaxes(**_GRID, fixedrange=True)
     return fig
