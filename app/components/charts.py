@@ -107,8 +107,10 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
                               "<br>Terjual: %{y} " + satuan + "<extra></extra>",
             ))
 
+    # height 480 -- rangeslider thickness=.15 (dinaikkan dari percobaan
+    # pertama .08, terbukti "kurang jelas") butuh ruang vertikal lebih.
     lay = _layout(hovermode="x unified")
-    fig.update_layout(**lay, height=380, yaxis_title=f"Unit ({satuan})")
+    fig.update_layout(**lay, height=480, yaxis_title=f"Unit ({satuan})")
     # Tahap B: zoom sumbu-x DIAKTIFKAN (fixedrange=False) -- pengguna bisa
     # drag-select memperbesar area padat untuk lihat detail tanggal harian
     # (riwayat 90 hari + horizon bikin tick otomatis Plotly jadi ~2 mingguan,
@@ -116,16 +118,16 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
     # supaya proporsi jumlah unit tak berubah-ubah saat zoom-x, mencegah
     # kesan menyesatkan (grafik "melonjak" cuma karena rescale otomatis).
     #
-    # Rangeselector Plotly bawaan (tombol preset "7/30 Hari Terakhir")
-    # DIHAPUS -- terbukti salah hitung: stepmode="backward" mengukur rentang
-    # dari batas atas AXIS yang sudah di-pad Plotly (bukan tanggal data
-    # terakhir sungguhan), menghasilkan window yang sebagian besar kosong
-    # (dikonfirmasi via DOM: klik "7 Hari Terakhir" -> range [06/01, 13/01]
-    # padahal data forecast terakhir cuma sampai 07/01). Preset SEKARANG
-    # jadi tombol Streamlit biasa (ui.rentang_riwayat_buttons(), dipanggil
-    # pemanggil di views/) yang MEMFILTER DATA DI PYTHON sebelum dikirim ke
-    # sini -- chart ini terima data yang sudah tepat, bukan "instruksi
-    # filter" yang diserahkan ke Plotly untuk dihitung sendiri.
+    # Rangeslider DIKEMBALIKAN (percobaan ke-4 navigasi rentang waktu --
+    # lihat riwayat lengkap di evidence/2026-09-08-rangeslider-custom-final/
+    # CATATAN.md) dengan styling custom -- versi PERTAMA (thickness=.08,
+    # warna default abu-abu Plotly) ditolak "kurang jelas fungsinya".
+    # bgcolor navy pudar + bordercolor navy solid + borderwidth 2 supaya
+    # terlihat sebagai KONTROL milik sistem desain UPStock, bukan elemen
+    # Plotly generik. Rangeselector (tombol preset Plotly bawaan, percobaan
+    # ke-2) dan tombol Streamlit custom (ui.rentang_riwayat_buttons,
+    # percobaan ke-3, commit ed01ceb) SUDAH DIHAPUS -- Arif pilih kembali ke
+    # pola "geser langsung", bukan tombol.
     #
     # font.size title dinaikkan 13(bawaan)->16 -- perbaikan T-lanjutan:
     # "Tanggal" pada 13-14px tampak seperti "Tanqqal" (kluster huruf ganda
@@ -136,6 +138,11 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
     fig.update_xaxes(
         **_GRID, fixedrange=False, tickformat=_TICKFORMAT_TGL,
         title=dict(text="Tanggal", font=dict(size=16)),
+        rangeslider=dict(
+            visible=True, thickness=.15,
+            bgcolor=ui.tint(WARNA["primer"], .12),
+            bordercolor=WARNA["primer"], borderwidth=2,
+        ),
     )
     fig.update_yaxes(**_GRID, fixedrange=True)
     return fig

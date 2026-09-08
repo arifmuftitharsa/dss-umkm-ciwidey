@@ -67,10 +67,9 @@ def render(df):
         (ui.tint(WARNA["primer"], .35), "Rentang kemungkinan"),
         ("#F4B400", "Hari libur / event"),
     ])
-    n_hari = ui.rentang_riwayat_buttons("perkiraan")
-    hist_tampil = ui.filter_riwayat_hari(hist, n_hari)
-    st.plotly_chart(charts.forecast_chart(hist_tampil, fut, satuan),
+    st.plotly_chart(charts.forecast_chart(hist, fut, satuan),
                     use_container_width=True, config=NO_BAR)
+    st.caption("↔ Geser bagian bawah grafik untuk lihat rentang tanggal lain")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
