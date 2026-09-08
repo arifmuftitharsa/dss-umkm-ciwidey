@@ -53,17 +53,21 @@ pages = [
     st.Page(_halaman_stok, title="Stok & Pembelian", icon="📦"),
     st.Page(_halaman_manajemen, title="Manajemen & Pengaturan", icon="⚙️"),
 ]
-# st.navigation menaruh daftar halaman di ATAS sidebar secara otomatis
-# (perilaku bawaan Streamlit, tak bisa diubah posisinya) -- adaptif ke
-# hamburger/collapsible di layar sempit tanpa CSS/JS custom.
+# st.navigation(position="sidebar") SELALU render widget nav di PALING ATAS
+# sidebar -- dikonfirmasi dari dokumentasi resmi (help(st.navigation)):
+# "the navigation widget appears at the top of the sidebar". Ini KETERBATASAN
+# API, bukan keputusan desain: urutan pemanggilan kode di bawah TIDAK
+# mengubah posisi render nav -- nama app+tagline SELALU tampil di bawah nav
+# apa pun urutan kodenya. Diterima apa adanya (bukan diakali) -- alternatif
+# satu-satunya, position="top", pindah nav jadi header horizontal di atas
+# konten (ganti paradigma navigasi total), di luar scope perbaikan kecil ini.
 nav = st.navigation(pages, position="sidebar")
 
-# --- SIDEBAR -- nama app + tagline, dirender DI BAWAH daftar navigasi
-# bawaan. Sengaja sederhana (nama+tagline+garis, SELESAI) -- info Studi
-# kasus/Rentang Waktu dan disclaimer riset dihapus dari sini (keputusan
-# Arif); disclaimer data sintetis (prinsip T-15) TETAP berlaku, tanggung
-# jawabnya dipindah ke dokumentasi & penjelasan lisan saat onboarding,
-# bukan dihapus dari kesadaran proyek.
+# --- SIDEBAR -- nama app + tagline. Sengaja sederhana (nama+tagline+garis,
+# SELESAI) -- info Studi kasus/Rentang Waktu dan disclaimer riset dihapus
+# dari sini (keputusan Arif); disclaimer data sintetis (prinsip T-15) TETAP
+# berlaku, tanggung jawabnya dipindah ke dokumentasi & penjelasan lisan saat
+# onboarding, bukan dihapus dari kesadaran proyek.
 with st.sidebar:
     st.markdown(
         f"<div style='font-family:Source Serif 4,serif;font-size:1.25rem;"

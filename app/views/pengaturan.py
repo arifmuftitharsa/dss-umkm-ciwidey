@@ -111,11 +111,12 @@ def render():
             pid_sel = st.selectbox("Produk", list(prod_map.keys()),
                                    format_func=lambda k: prod_map[k]["nama"],
                                    key="rec_pid")
-            st.warning(
-                "Sistem masih memakai data latihan (bukan catatan penjualan "
-                "asli). Aktifkan data real dulu sebelum mulai mencatat "
-                "penjualan sungguhan -- data latihan lama tidak lagi dipakai "
-                "untuk menghitung tren setelah ini."
+            ui.action(
+                "Sistem masih memakai data latihan",
+                "Bukan catatan penjualan asli. Aktifkan data real dulu sebelum "
+                "mulai mencatat penjualan sungguhan -- data latihan lama tidak "
+                "lagi dipakai untuk menghitung tren setelah ini.",
+                "info",
             )
             konfirmasi = st.checkbox(
                 f"Saya paham, mulai catat data asli mulai hari ini "
