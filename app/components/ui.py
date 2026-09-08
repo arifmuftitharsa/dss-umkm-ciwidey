@@ -196,6 +196,19 @@ def legend(items: list):
     st.markdown(f'<div class="chart-legend">{chips}</div>', unsafe_allow_html=True)
 
 
+def petunjuk_geser(text: str):
+    """Hint kecil di bawah chart yang punya rangeslider -- rata KIRI sejajar
+    sumbu-y (bukan st.caption bawaan yang center), warna teks_lemah, ikon
+    panah. Opsi (a) dari 3 opsi styling yang diajukan -- paling proporsional
+    untuk elemen sekecil ini (YAGNI: pill/kolom kebanyakan buat satu baris
+    hint)."""
+    st.markdown(
+        f'<div style="color:{WARNA["teks_lemah"]};font-size:.8rem;'
+        f'margin-top:-.5rem;">↔ {text}</div>',
+        unsafe_allow_html=True,
+    )
+
+
 def riset_tag(text: str):
     """Penanda section skripsi — HANYA untuk halaman Validasi (penguji)."""
     st.markdown(f'<span class="riset">{text}</span>', unsafe_allow_html=True)

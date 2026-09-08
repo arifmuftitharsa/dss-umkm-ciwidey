@@ -74,7 +74,7 @@ def render(df):
         hist, fut, _ = forecast_future(df, pid_utama)
         st.plotly_chart(charts.forecast_chart(hist, fut, produk[pid_utama]["satuan"]),
                         use_container_width=True, config=NO_BAR)
-        st.caption("↔ Geser bagian bawah grafik untuk lihat rentang tanggal lain")
+        ui.petunjuk_geser("Geser bagian bawah grafik untuk lihat rentang tanggal lain")
 
     with kanan:
         ui.section("Yang Perlu Dilakukan", "Tindakan minggu ini")

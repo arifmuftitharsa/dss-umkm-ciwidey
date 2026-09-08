@@ -107,10 +107,12 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
                               "<br>Terjual: %{y} " + satuan + "<extra></extra>",
             ))
 
-    # height 480 -- rangeslider thickness=.15 (dinaikkan dari percobaan
-    # pertama .08, terbukti "kurang jelas") butuh ruang vertikal lebih.
+    # height 420 -- rangeslider thickness diturunkan .15->.08 (proporsi
+    # semula, sebelumnya terbukti "kurang jelas" cuma di versi TANPA warna
+    # custom -- kontras di sini datang dari bgcolor/bordercolor, bukan
+    # ketebalan, jadi tak perlu setebal itu lagi).
     lay = _layout(hovermode="x unified")
-    fig.update_layout(**lay, height=480, yaxis_title=f"Unit ({satuan})")
+    fig.update_layout(**lay, height=420, yaxis_title=f"Unit ({satuan})")
     # Tahap B: zoom sumbu-x DIAKTIFKAN (fixedrange=False) -- pengguna bisa
     # drag-select memperbesar area padat untuk lihat detail tanggal harian
     # (riwayat 90 hari + horizon bikin tick otomatis Plotly jadi ~2 mingguan,
@@ -118,28 +120,31 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
     # supaya proporsi jumlah unit tak berubah-ubah saat zoom-x, mencegah
     # kesan menyesatkan (grafik "melonjak" cuma karena rescale otomatis).
     #
-    # Rangeslider DIKEMBALIKAN (percobaan ke-4 navigasi rentang waktu --
-    # lihat riwayat lengkap di evidence/2026-09-08-rangeslider-custom-final/
-    # CATATAN.md) dengan styling custom -- versi PERTAMA (thickness=.08,
-    # warna default abu-abu Plotly) ditolak "kurang jelas fungsinya".
-    # bgcolor navy pudar + bordercolor navy solid + borderwidth 2 supaya
-    # terlihat sebagai KONTROL milik sistem desain UPStock, bukan elemen
-    # Plotly generik. Rangeselector (tombol preset Plotly bawaan, percobaan
-    # ke-2) dan tombol Streamlit custom (ui.rentang_riwayat_buttons,
-    # percobaan ke-3, commit ed01ceb) SUDAH DIHAPUS -- Arif pilih kembali ke
-    # pola "geser langsung", bukan tombol.
+    # Rangeslider (percobaan ke-4 navigasi rentang waktu -- riwayat lengkap
+    # di evidence/2026-09-08-rangeslider-custom-final/CATATAN.md) dengan
+    # styling custom: bgcolor navy pudar + bordercolor navy solid + border
+    # 2px supaya terlihat sebagai KONTROL sistem desain, bukan elemen Plotly
+    # generik. Rangeselector (percobaan ke-2) dan tombol Streamlit custom
+    # (percobaan ke-3, commit ed01ceb) sudah dihapus -- Arif pilih drag
+    # langsung.
     #
-    # font.size title dinaikkan 13(bawaan)->16 -- perbaikan T-lanjutan:
-    # "Tanggal" pada 13-14px tampak seperti "Tanqqal" (kluster huruf ganda
-    # "gg" mengecil jadi ambigu di font Plus Jakarta Sans ukuran kecil).
-    # Dikonfirmasi lewat inspeksi DOM SVG (data-unformatted="Tanggal" --
-    # data/teks sudah benar sejak awal, murni masalah keterbacaan ukuran,
-    # BUKAN tumpang tindih posisi dengan elemen lain seperti dugaan awal).
+    # xaxis.title ("Tanggal") DIHAPUS TOTAL -- akar 2 masalah sekaligus:
+    # (1) regresi teks "Tanqqal": DOM dikonfirmasi devicePixelRatio layar
+    # Arif 1.25 (scaling Windows 125%), fractional DPR dikenal memicu
+    # artefak anti-aliasing teks SVG kecil -- kluster "gg" jadi blur,
+    # independen dari font.size berapa pun dicoba (16px sudah dites,
+    # tetap muncul lagi di DPR pecahan). (2) Plotly TAK punya parameter
+    # menaruh xaxis.title DI ATAS rangeslider -- title axis selalu
+    # dirender PALING BAWAH kompleks sumbu-x (setelah rangeslider), bukan
+    # bug kode, keterbatasan render-pipeline Plotly. Menghapus title
+    # sekaligus selesaikan keduanya: tick tanggal (format DD/MM) sudah
+    # cukup jelas maknanya tanpa label terpisah, dan urutan visual otomatis
+    # benar (Grafik -> tick -> rangeslider -> caption "Geser..." di
+    # views/, bukan bagian fig ini).
     fig.update_xaxes(
         **_GRID, fixedrange=False, tickformat=_TICKFORMAT_TGL,
-        title=dict(text="Tanggal", font=dict(size=16)),
         rangeslider=dict(
-            visible=True, thickness=.15,
+            visible=True, thickness=.08,
             bgcolor=ui.tint(WARNA["primer"], .12),
             bordercolor=WARNA["primer"], borderwidth=2,
         ),
