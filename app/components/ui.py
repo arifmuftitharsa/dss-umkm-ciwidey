@@ -33,35 +33,32 @@ _CSS = f"""
 @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 :root {{
-  --primer:{WARNA['primer']}; --sekunder:{WARNA['sekunder']};
+  --primer:{WARNA['primer']}; --sekunder:{WARNA['sekunder']}; --aksen:{WARNA['aksen']};
   --kritis:{WARNA['kritis']}; --waspada:{WARNA['waspada']}; --aman:{WARNA['aman']};
   --garis:{WARNA['garis']}; --teks:{WARNA['teks']}; --teks-lemah:{WARNA['teks_lemah']};
-  --kartu:{WARNA['kartu']};
+  --kartu:{WARNA['kartu']}; --surface:{WARNA['surface']};
 }}
 
 html, body, [class*="css"], .stApp {{
   font-family:'Plus Jakarta Sans',sans-serif; color:var(--teks);
 }}
 .stApp {{ background:{WARNA['bg']}; }}
-h1,h2,h3,h4 {{ font-family:'Source Serif 4',Georgia,serif; color:var(--sekunder);
+h1,h2,h3,h4 {{ font-family:'Source Serif 4',Georgia,serif; color:var(--teks);
   letter-spacing:-.01em; }}
 .block-container {{ padding-top:1.8rem; max-width:1160px; }}
 
-/* sidebar — teks dipaksa gelap & terbaca */
-section[data-testid="stSidebar"] {{ background:var(--kartu); border-right:1px solid var(--garis); }}
+/* sidebar -- surface (beda halus dari bg putih konten), teks dipaksa gelap & terbaca */
+section[data-testid="stSidebar"] {{ background:var(--surface); border-right:1px solid var(--garis); }}
 section[data-testid="stSidebar"] * {{ color:var(--teks) !important; }}
-section[data-testid="stSidebar"] .stRadio label {{ font-weight:600; font-size:.95rem; }}
-section[data-testid="stSidebar"] .stRadio label p {{ color:var(--teks) !important; }}
 
-/* KPI card — kartu putih kontras dgn bg abu */
-.kpi {{ background:var(--kartu); border:1px solid var(--garis); border-radius:14px;
-  padding:18px 20px; height:100%; box-shadow:0 1px 3px rgba(16,40,64,.07); }}
-.kpi .label {{ font-size:.78rem; color:var(--teks-lemah); font-weight:700;
-  text-transform:uppercase; letter-spacing:.045em; }}
+/* KPI card -- border kiri berwarna (konsisten dgn action-card), TANPA shadow/radius
+   besar seragam (hindari pola "SaaS-card kit"). Label sentence case, bukan ALL-CAPS. */
+.kpi {{ background:var(--kartu); border:1px solid var(--garis); border-left:3px solid var(--primer);
+  border-radius:6px; padding:16px 18px; height:100%; }}
+.kpi .label {{ font-size:.83rem; color:var(--teks-lemah); font-weight:600; }}
 .kpi .value {{ font-family:'Source Serif 4',serif; font-size:2.0rem; font-weight:700;
-  color:var(--sekunder); line-height:1.1; margin-top:6px; }}
+  color:var(--teks); line-height:1.1; margin-top:6px; }}
 .kpi .sub {{ font-size:.83rem; color:var(--teks-lemah); margin-top:7px; }}
-.kpi .accent {{ height:3px; width:32px; border-radius:3px; background:var(--primer); margin-bottom:13px; }}
 
 /* status pill */
 .pill {{ display:inline-block; padding:3px 11px; border-radius:999px;
@@ -70,28 +67,44 @@ section[data-testid="stSidebar"] .stRadio label p {{ color:var(--teks) !importan
 .pill.waspada {{ background:#FBF0DE; color:var(--waspada); }}
 .pill.aman    {{ background:#E2F3EC; color:var(--aman); }}
 
-/* action card (pengganti alert emoji) */
-.action {{ background:var(--kartu); border:1px solid var(--garis); border-left:4px solid;
-  border-radius:11px; padding:13px 16px; margin:8px 0; box-shadow:0 1px 2px rgba(16,40,64,.04); }}
+/* action card (pengganti alert emoji) -- radius kecil konsisten dgn KPI, tanpa shadow */
+.action {{ background:var(--kartu); border:1px solid var(--garis); border-left:3px solid;
+  border-radius:6px; padding:13px 16px; margin:8px 0; }}
 .action.kritis  {{ border-left-color:var(--kritis); }}
 .action.waspada {{ border-left-color:var(--waspada); }}
-.action.info    {{ border-left-color:var(--sekunder); }}
+.action.info    {{ border-left-color:var(--aksen); }}
 .action.aman    {{ border-left-color:var(--aman); }}
 .action .judul {{ font-weight:700; color:var(--teks); font-size:.96rem; }}
 .action .detail {{ color:var(--teks-lemah); font-size:.87rem; margin-top:3px; line-height:1.45; }}
 
-/* section header */
+/* section header -- sentence case, tanpa separator titik tengah */
 .section {{ font-family:'Source Serif 4',serif; font-size:1.2rem; font-weight:600;
-  color:var(--sekunder); margin:6px 0 2px; }}
+  color:var(--teks); margin:6px 0 2px; }}
 .section-sub {{ color:var(--teks-lemah); font-size:.87rem; margin-bottom:12px; }}
 
-/* tag riset — HANYA dipakai di halaman Validasi (untuk penguji) */
-.riset {{ display:inline-block; background:#EEF3F6; color:var(--sekunder);
+/* tag riset -- dead code sisa halaman Validasi (dihapus T-10), dibiarkan di luar
+   scope Tahap 1 (bukan bagian redesain, murni CSS mati tak terpanggil) */
+.riset {{ display:inline-block; background:#EEF3F6; color:var(--teks);
   border:1px solid var(--garis); border-radius:6px; padding:2px 9px;
   font-size:.72rem; font-weight:600; margin-top:8px; }}
 
 table {{ font-size:.9rem; }}
-.stDataFrame {{ border:1px solid var(--garis); border-radius:10px; }}
+.stDataFrame {{ border:1px solid var(--garis); border-radius:8px; }}
+
+/* --- RESPONSIF -- breakpoint tablet/mobile. st.columns() Streamlit defaultnya
+   selalu flex-row (berdampingan) walau layar sempit; dipaksa flex-column di
+   bawah 768px supaya kartu KPI dkk ditumpuk, bukan berjejal sempit di HP. */
+@media (max-width: 1023px) {{
+  .block-container {{ padding-left:1rem; padding-right:1rem; max-width:100%; }}
+}}
+@media (max-width: 767px) {{
+  .block-container {{ padding-top:1rem; padding-left:.75rem; padding-right:.75rem; }}
+  [data-testid="stHorizontalBlock"] {{ flex-direction:column; }}
+  [data-testid="stHorizontalBlock"] > div {{ width:100% !important; flex:1 1 100% !important; }}
+  .kpi {{ padding:14px 16px; }}
+  .kpi .value {{ font-size:1.7rem; }}
+  h2 {{ font-size:1.4rem; }}
+}}
 </style>
 """
 
@@ -101,8 +114,11 @@ def inject():
 
 
 def kpi(label: str, value: str, sub: str = ""):
+    """Kartu KPI -- border kiri berwarna menandai kartu (bukan shadow/accent-bar
+    terpisah), konsisten dgn pola action-card. Signature tak berubah dari
+    sebelumnya supaya views/ pemanggil tak perlu disentuh (Tahap 1)."""
     st.markdown(
-        f'<div class="kpi"><div class="accent"></div>'
+        f'<div class="kpi">'
         f'<div class="label">{label}</div><div class="value">{value}</div>'
         f'<div class="sub">{sub}</div></div>',
         unsafe_allow_html=True,

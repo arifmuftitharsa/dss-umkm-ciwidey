@@ -108,17 +108,23 @@ MODEL = {
 }
 MODEL_TERBAIK = "XGBoost"
 
-# PALET WARNA (tema akademik clean — hijau/biru supply chain)
+# PALET WARNA -- netral/generik (BUKAN identitas stroberi), disetujui Arif
+# untuk redesain Tahap 1: platform ini direncanakan dipakai UMKM jenis
+# apapun ke depan, bukan cuma olahan stroberi. Satu aksen navy netral
+# (bukan hijau "duit UMKM" atau merah "stroberi" yang mengikat identitas
+# ke satu jenis usaha), status kritis/waspada/aman TETAP merah/kuning/
+# hijau -- itu bahasa universal fungsional, bukan identitas brand.
 WARNA = {
-    "primer":    "#0E8A6B",   # hijau teal (supply chain)
-    "sekunder":  "#16344A",   # deep blue (logistik) — digelapkan utk kontras
-    "aksen":     "#2EA37A",
-    "kritis":    "#C42B3C",
-    "waspada":   "#B5731A",
-    "aman":      "#1E8E64",
-    "bg":        "#F4F6F8",   # area kerja (abu sangat muda)
-    "kartu":     "#FFFFFF",   # kartu putih -> kontras dgn bg
-    "garis":     "#DCE2E7",
-    "teks":      "#16202B",   # near-black
-    "teks_lemah":"#54616E",   # digelapkan agar terbaca
+    "primer":    "#1E3A5F",   # navy -- aksen utama, dipakai garis/bar aktif
+    "sekunder":  "#64748B",   # slate netral -- seri data kedua/pembanding
+    "aksen":     "#1E3A5F",   # sama dgn primer -- elemen interaktif UI
+    "kritis":    "#DC2626",
+    "waspada":   "#D97706",
+    "aman":      "#16A34A",
+    "bg":        "#FFFFFF",   # putih bersih, sesuai arahan
+    "surface":   "#F7F8FA",   # beda halus dari bg, HANYA utk chrome (sidebar/nav)
+    "kartu":     "#FFFFFF",   # kartu putih, dibedakan dari bg via border tipis
+    "garis":     "#E5E7EB",
+    "teks":      "#1A1F2B",
+    "teks_lemah":"#6B7280",
 }
