@@ -10,7 +10,7 @@ import streamlit as st
 
 from components import ui
 from data.synthetic import generate
-from config import STUDI_KASUS, APP_NAME, WARNA
+from config import APP_NAME, WARNA
 from views import overview, forecasting, inventory, pengaturan
 
 st.set_page_config(
@@ -58,27 +58,19 @@ pages = [
 # hamburger/collapsible di layar sempit tanpa CSS/JS custom.
 nav = st.navigation(pages, position="sidebar")
 
-# --- SIDEBAR -- info tambahan, dirender DI BAWAH daftar navigasi bawaan.
-# Satu blok flex-column (bukan beberapa st.markdown terpisah) supaya
-# margin-top:auto pada watermark bisa mendorongnya ke dasar SIDEBAR --
-# menutup akar masalah "ruang kosong janggal" (dulu watermark position:fixed
-# terlepas dari isi di atasnya, sekarang jadi bagian layout normal).
+# --- SIDEBAR -- nama app + tagline, dirender DI BAWAH daftar navigasi
+# bawaan. Sengaja sederhana (nama+tagline+garis, SELESAI) -- info Studi
+# kasus/Rentang Waktu dan disclaimer riset dihapus dari sini (keputusan
+# Arif); disclaimer data sintetis (prinsip T-15) TETAP berlaku, tanggung
+# jawabnya dipindah ke dokumentasi & penjelasan lisan saat onboarding,
+# bukan dihapus dari kesadaran proyek.
 with st.sidebar:
     st.markdown(
-        f"<div class='sidebar-flex'>"
-        f"<div>"
         f"<div style='font-family:Source Serif 4,serif;font-size:1.25rem;"
         f"font-weight:700;color:{WARNA['teks']};line-height:1.2;margin-top:.5rem;'>{APP_NAME}</div>"
         f"<div style='color:{WARNA['teks_lemah']};font-size:.8rem;margin-bottom:1rem;'>"
         "Bantu UMKM Kelola Stok</div>"
-        "<hr style='margin:0 0 1rem;'>"
-        f"<div class='sidebar-info'>"
-        f"<b>Studi kasus</b><br>{STUDI_KASUS['lokasi']}<br><br>"
-        f"<b>Rentang Waktu</b><br>7 hari ke depan (utama) serta 14/30 hari ke depan"
-        f"</div>"
-        f"</div>"
-        f"<div class='sidebar-watermark'>Prototipe penelitian S1, bukan data produksi</div>"
-        f"</div>",
+        "<hr style='margin:0 0 1rem;'>",
         unsafe_allow_html=True,
     )
 
