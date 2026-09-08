@@ -118,7 +118,7 @@ def render():
                 "untuk menghitung tren setelah ini."
             )
             konfirmasi = st.checkbox(
-                f"Saya paham — mulai catat data asli mulai hari ini "
+                f"Saya paham, mulai catat data asli mulai hari ini "
                 f"({hari_ini.date()}), data latihan lama tidak lagi dipakai "
                 f"untuk hitung tren.",
                 key="konfirmasi_reset_operasional",
@@ -162,7 +162,7 @@ def render():
                 with cc3:
                     qty = st.number_input("Jumlah terjual", min_value=0, step=1)
 
-                st.caption(f"📅 Tanggal valid berikutnya: **{nxt.date()}** — pencatatan "
+                st.caption(f"📅 Tanggal valid berikutnya: **{nxt.date()}**, pencatatan "
                            f"berurutan menjaga perkiraan tetap valid.")
 
                 if st.button("🧾 Catat Penjualan", type="primary"):
