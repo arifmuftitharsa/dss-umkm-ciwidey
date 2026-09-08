@@ -10,11 +10,11 @@ import streamlit as st
 
 from components import ui
 from data.synthetic import generate
-from config import STUDI_KASUS, MODEL, MODEL_TERBAIK
+from config import STUDI_KASUS, APP_NAME
 from views import overview, forecasting, inventory, pengaturan
 
 st.set_page_config(
-    page_title="DSS UMKM — Supply Chain & Demand Forecasting",
+    page_title=f"Kelola Stok UMKM Bareng {APP_NAME}",
     page_icon="📦", layout="wide", initial_sidebar_state="expanded",
 )
 ui.inject()
@@ -31,10 +31,10 @@ df = load_data()
 # --- SIDEBAR
 with st.sidebar:
     st.markdown(
-        "<div style='font-family:Source Serif 4,serif;font-size:1.25rem;"
-        "font-weight:700;color:#1B4965;line-height:1.2;'>DSS UMKM</div>"
+        f"<div style='font-family:Source Serif 4,serif;font-size:1.25rem;"
+        f"font-weight:700;color:#1B4965;line-height:1.2;'>{APP_NAME}</div>"
         "<div style='color:#6B7785;font-size:.8rem;margin-bottom:1rem;'>"
-        "Supply Chain & Demand Forecasting</div>",
+        "Bantu UMKM Kelola Stok</div>",
         unsafe_allow_html=True,
     )
 
@@ -50,8 +50,7 @@ with st.sidebar:
     st.markdown(
         f"<div style='font-size:.78rem;color:#6B7785;line-height:1.5;'>"
         f"<b>Studi kasus</b><br>{STUDI_KASUS['lokasi']}<br><br>"
-        f"<b>Model terbaik</b><br>{MODEL[MODEL_TERBAIK]['label']}<br>"
-        f"<b>Horizon</b><br>7 hari ke depan (utama) serta 14/30 hari ke depan</div>",
+        f"<b>Rentang Waktu</b><br>7 hari ke depan (utama) serta 14/30 hari ke depan</div>",
         unsafe_allow_html=True,
     )
     st.markdown(

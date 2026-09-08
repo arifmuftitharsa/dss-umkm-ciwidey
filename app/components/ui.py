@@ -4,7 +4,29 @@ components/ui.py - Tema visual dan komponen UI yang dipakai berulang.
 Tema light, tanpa emoji; status disampaikan lewat warna dan label teks.
 """
 import streamlit as st
+import pandas as pd
 from config import WARNA
+
+# Nama hari/bulan Indonesia -- mapping manual, BUKAN locale.setlocale("id_ID"),
+# karena locale itu sering tak terpasang di server/Windows (bisa LookupError
+# saat deploy, melanggar fail-fast/reproduksibilitas). strftime()/Plotly
+# hover default-nya Inggris (Saturday, Sep) -- dipakai di semua tempat yang
+# menampilkan tanggal ke pengguna (Rincian per Hari, tabel bahan baku, hover
+# grafik).
+_HARI_ID = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
+_BULAN_ID = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+             "Jul", "Agu", "Sep", "Okt", "Nov", "Des"]
+
+
+def tanggal_id(dt, hari_penuh: bool = True) -> str:
+    """Format tanggal Bahasa Indonesia, mis. 'Senin, 05 Sep' atau 'Sen 05 Sep'."""
+    dt = pd.Timestamp(dt)
+    hari = _HARI_ID[dt.dayofweek]
+    bulan = _BULAN_ID[dt.month - 1]
+    if hari_penuh:
+        return f"{hari}, {dt.day:02d} {bulan}"
+    return f"{hari[:3]} {dt.day:02d} {bulan}"
+
 
 _CSS = f"""
 <style>

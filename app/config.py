@@ -10,6 +10,11 @@ baku, stok, dan BOM dibaca dari database (data/store.py) yang dapat diubah
 sendiri oleh pemilik UMKM lewat halaman Manajemen.
 """
 
+# NAMA APLIKASI -- sumber tunggal (Single Source of Truth), dipakai di
+# page_title & sidebar app.py. Bisa berubah lagi ke depan (keputusan Bu
+# Ariana) -- cukup ubah di sini, tak perlu cari-ganti manual tiap lokasi.
+APP_NAME = "UPStock"
+
 # IDENTITAS STUDI KASUS
 STUDI_KASUS = {
     "nama": "UMKM Olahan Stroberi — Desa Wisata Alamendah",

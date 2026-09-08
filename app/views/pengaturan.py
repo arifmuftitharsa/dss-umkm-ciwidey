@@ -77,7 +77,7 @@ def render():
 
     # --- TAB 3: BOM
     with tab3:
-        ui.section("Resep / Bill of Materials",
+        ui.section("Resep / Daftar Kebutuhan Bahan",
                    "Isi berapa banyak tiap bahan baku dipakai untuk membuat "
                    "1 unit produk. Kosongkan (0) bila bahan tidak dipakai.")
         mat = store.get_bom_matrix()

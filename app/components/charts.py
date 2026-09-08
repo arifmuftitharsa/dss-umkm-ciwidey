@@ -6,6 +6,10 @@ Semua grafik memakai palet warna dari config.WARNA.
 import plotly.graph_objects as go
 import pandas as pd
 from config import WARNA, MODEL
+from . import ui
+
+_TICKFORMAT_TGL = "%d/%m"  # sumbu-x numerik (hindari nama bulan Inggris
+                           # Plotly, d3-time-format-nya tak punya locale ID)
 
 
 _LAYOUT = dict(
@@ -30,6 +34,12 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
     """Garis penjualan historis + perkiraan 7 hari + rentang perkiraan + penanda libur."""
     fig = go.Figure()
 
+    # Label tanggal Bahasa Indonesia untuk hover -- Plotly hovertemplate
+    # "%{x|%a %d %b}" defaultnya render nama hari/bulan Inggris (d3-time-format
+    # tak punya locale ID bawaan), jadi dibangun manual lewat customdata.
+    hist_label = [ui.tanggal_id(d, hari_penuh=False) for d in history.date]
+    fut_label = [ui.tanggal_id(d, hari_penuh=False) for d in future.date]
+
     # rentang perkiraan (area + garis batas agar jelas terlihat)
     fig.add_trace(go.Scatter(
         x=list(future.date) + list(future.date[::-1]),
@@ -42,7 +52,8 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
     fig.add_trace(go.Scatter(
         x=history.date, y=history.quantity_sold, mode="lines",
         line=dict(color=WARNA["sekunder"], width=2), name="Penjualan sebelumnya",
-        hovertemplate="%{x|%a %d %b}<br>Terjual: %{y} " + satuan + "<extra></extra>",
+        customdata=hist_label,
+        hovertemplate="%{customdata}<br>Terjual: %{y} " + satuan + "<extra></extra>",
     ))
     # jembatan aktual->perkiraan -- hanya kalau ada riwayat. Produk baru
     # tanpa penjualan sebelumnya (T-4) punya history kosong: tak ada apa
@@ -59,11 +70,13 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
         x=future.date, y=future.yhat, mode="lines+markers",
         line=dict(color=WARNA["primer"], width=3), marker=dict(size=8),
         name="Perkiraan 7 hari",
-        hovertemplate="%{x|%a %d %b}<br>Perkiraan: %{y} " + satuan + "<extra></extra>",
+        customdata=fut_label,
+        hovertemplate="%{customdata}<br>Perkiraan: %{y} " + satuan + "<extra></extra>",
     ))
     # penanda hari libur/event — garis tipis + TITIK KUNING di kurva perkiraan
     hol = future[future.is_holiday == 1]
     if not hol.empty:
+        hol_label = [ui.tanggal_id(d, hari_penuh=False) for d in hol.date]
         for _, r in hol.iterrows():
             fig.add_vline(x=r.date,
                           line=dict(color="#E0A100", width=1, dash="dash"))
@@ -72,7 +85,8 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
             marker=dict(size=14, color="#F4B400", symbol="circle",
                         line=dict(width=2, color="#B5731A")),
             name="Hari libur / event",
-            hovertemplate="%{x|%a %d %b}<br><b>Hari libur nasional</b>"
+            customdata=hol_label,
+            hovertemplate="%{customdata}<br><b>Hari libur nasional</b>"
                           "<br>Perkiraan ramai: %{y} " + satuan + "<extra></extra>",
         ))
 
@@ -80,18 +94,20 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
     if "is_holiday" in history.columns:
         hol_h = history[history.is_holiday == 1]
         if not hol_h.empty:
+            hol_h_label = [ui.tanggal_id(d, hari_penuh=False) for d in hol_h.date]
             fig.add_trace(go.Scatter(
                 x=hol_h.date, y=hol_h.quantity_sold, mode="markers",
                 marker=dict(size=11, color="#F4B400", symbol="circle",
                             line=dict(width=1.5, color="#B5731A")),
                 name="Libur (lampau)", showlegend=False,
-                hovertemplate="%{x|%a %d %b}<br><b>Hari libur (lampau)</b>"
+                customdata=hol_h_label,
+                hovertemplate="%{customdata}<br><b>Hari libur (lampau)</b>"
                               "<br>Terjual: %{y} " + satuan + "<extra></extra>",
             ))
 
     lay = _layout(hovermode="x unified")
     fig.update_layout(**lay, height=380, yaxis_title=f"Unit ({satuan})")
-    fig.update_xaxes(**_GRID, fixedrange=True)   # matikan geser/zoom
+    fig.update_xaxes(**_GRID, fixedrange=True, tickformat=_TICKFORMAT_TGL)  # matikan geser/zoom
     fig.update_yaxes(**_GRID, fixedrange=True)
     return fig
 

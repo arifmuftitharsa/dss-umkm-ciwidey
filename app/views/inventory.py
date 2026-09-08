@@ -79,6 +79,7 @@ def render(df):
         st.caption("Dihitung dari perkiraan penjualan semua produk × resep tiap produk.")
         mat = material_demand_7d(df)
         mat_show = mat.copy()
-        mat_show.index = pd.to_datetime(mat_show.index).strftime("%a %d %b")
+        mat_show.index = [ui.tanggal_id(d, hari_penuh=False)
+                          for d in pd.to_datetime(mat_show.index)]
         mat_show.columns = [BAHAN_BAKU[c]["nama"] for c in mat_show.columns]
         st.dataframe(mat_show, use_container_width=True)

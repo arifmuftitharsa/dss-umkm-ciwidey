@@ -31,7 +31,7 @@ def render(df):
         pid = st.selectbox("Pilih produk", list(produk.keys()),
                            format_func=lambda k: produk[k]["nama"])
     with c_hor:
-        horizon = st.selectbox("Horizon perkiraan", [7, 14, 30],
+        horizon = st.selectbox("Rentang Waktu Prediksi", [7, 14, 30],
                                format_func=lambda d: f"{d} hari")
 
     # Hanya horizon 30 yang melewati batas prakiraan cuaca numerik (16 hari).
@@ -82,7 +82,7 @@ def render(df):
         return "Hari biasa"
 
     show = pd.DataFrame({
-        "Tanggal": tbl.date.dt.strftime("%A, %d %b"),
+        "Tanggal": tbl.date.apply(ui.tanggal_id),
         "Perkiraan terjual": tbl.yhat.astype(int).astype(str) + " " + satuan,
         "Catatan": tbl.apply(alasan, axis=1),
     })
