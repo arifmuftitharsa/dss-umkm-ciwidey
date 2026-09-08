@@ -12,7 +12,7 @@ from components import ui, charts
 from core.forecasting import forecast_future
 from data import store
 from data.weather import MAX_FORECAST_DAYS
-from config import MODEL_TERBAIK
+from config import MODEL_TERBAIK, WARNA
 
 NO_BAR = {"displayModeBar": False}
 
@@ -60,8 +60,13 @@ def render(df):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    ui.section(f"Grafik Perkiraan Produk {produk[pid]['nama']}",
-               "Garis biru tua = perkiraan; area terang = rentang kemungkinan")
+    ui.section(f"Grafik Perkiraan Produk {produk[pid]['nama']}")
+    ui.legend([
+        (WARNA["sekunder"], "Penjualan sebelumnya"),
+        (WARNA["primer"], "Perkiraan 7 hari"),
+        (ui.tint(WARNA["primer"], .35), "Rentang kemungkinan"),
+        ("#F4B400", "Hari libur / event"),
+    ])
     st.plotly_chart(charts.forecast_chart(hist, fut, satuan),
                     use_container_width=True, config=NO_BAR)
 

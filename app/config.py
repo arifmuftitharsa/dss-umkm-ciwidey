@@ -127,4 +127,15 @@ WARNA = {
     "garis":     "#E5E7EB",
     "teks":      "#1A1F2B",
     "teks_lemah":"#6B7280",
+    # Bar muted (Tahap B redesain) -- TAMBAHAN, BUKAN ganti kritis/waspada/
+    # aman di atas (itu tetap dipakai pill/teks status, saturasi penuh perlu
+    # dipertahankan di situ). Bar horizontal (inventory_bar) area BESAR --
+    # saturasi penuh "berteriak" bentrok dengan navy tenang di komponen lain.
+    # Turun saturasi + naik lightness dari token asli, TETAP 3 hue beda
+    # jelas (merah/amber/hijau) supaya sinyal cepat untuk pengguna awam
+    # tak hilang -- prinsip: warna semantik kuat tetap penting untuk
+    # audiens awam, tapi versi kalem bukan warna mentah "stop-sign".
+    "kritis_bar": "#D9776D",
+    "waspada_bar":"#D9A45C",
+    "aman_bar":   "#5FA377",
 }

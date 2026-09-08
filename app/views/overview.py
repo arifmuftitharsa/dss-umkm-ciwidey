@@ -10,7 +10,7 @@ from components import ui, charts
 from core.forecasting import forecast_future
 from core.inventory import inventory_table
 from data import store
-from config import STUDI_KASUS
+from config import STUDI_KASUS, WARNA
 
 NO_BAR = {"displayModeBar": False}
 
@@ -64,9 +64,13 @@ def render(df):
         # pun produk ditambah/dihapus lewat dashboard.
         pid_utama = max(produk, key=lambda pid: produk[pid]["mu"])
         ui.section(f"Perkiraan Penjualan Produk {produk[pid_utama]['nama']}",
-                   "Produk dengan penjualan tertinggi. Garis abu-abu = penjualan 60 "
-                   "hari lalu, garis biru tua = perkiraan 7 hari, area biru muda = "
-                   "rentang kemungkinan (bisa lebih tinggi/rendah).")
+                   "Produk dengan penjualan tertinggi.")
+        ui.legend([
+            (WARNA["sekunder"], "Penjualan sebelumnya"),
+            (WARNA["primer"], "Perkiraan 7 hari"),
+            (ui.tint(WARNA["primer"], .35), "Rentang kemungkinan"),
+            ("#F4B400", "Hari libur / event"),
+        ])
         hist, fut, _ = forecast_future(df, pid_utama)
         st.plotly_chart(charts.forecast_chart(hist, fut, produk[pid_utama]["satuan"]),
                         use_container_width=True, config=NO_BAR)
@@ -96,7 +100,14 @@ def render(df):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    ui.section("Kondisi Stok Bahan Baku", "Batang merah = perlu dibeli")
+    ui.section("Kondisi Stok Bahan Baku", "")
+    ui.legend([
+        (WARNA["kritis_bar"], "Segera beli"),
+        (WARNA["waspada_bar"], "Perhatikan"),
+        (WARNA["aman_bar"], "Aman"),
+        (WARNA["teks"], "Batas aman (ROP)"),
+        ("#F4B400", "Jumlah beli ideal (EOQ)"),
+    ])
     st.plotly_chart(charts.inventory_bar(inv), use_container_width=True, config=NO_BAR)
 
 

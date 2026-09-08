@@ -28,7 +28,7 @@ def tanggal_id(dt, hari_penuh: bool = True) -> str:
     return f"{hari[:3]} {dt.day:02d} {bulan}"
 
 
-def _tint(hex_color: str, alpha: float) -> str:
+def tint(hex_color: str, alpha: float) -> str:
     """hex '#RRGGBB' -> rgba() CSS, dihitung dari token WARNA. BUKAN hardcode
     tint terpisah -- bug Tahap 2 (rgba hijau lama di charts.py) berulang di
     sini: background pill status dulu di-hex manual cocok warna kritis/
@@ -74,9 +74,9 @@ section[data-testid="stSidebar"] * {{ color:var(--teks) !important; }}
 /* status pill */
 .pill {{ display:inline-block; padding:3px 11px; border-radius:999px;
   font-size:.74rem; font-weight:700; letter-spacing:.02em; }}
-.pill.kritis  {{ background:{_tint(WARNA['kritis'], .12)}; color:var(--kritis); }}
-.pill.waspada {{ background:{_tint(WARNA['waspada'], .12)}; color:var(--waspada); }}
-.pill.aman    {{ background:{_tint(WARNA['aman'], .12)}; color:var(--aman); }}
+.pill.kritis  {{ background:{tint(WARNA['kritis'], .12)}; color:var(--kritis); }}
+.pill.waspada {{ background:{tint(WARNA['waspada'], .12)}; color:var(--waspada); }}
+.pill.aman    {{ background:{tint(WARNA['aman'], .12)}; color:var(--aman); }}
 
 /* action card (pengganti alert emoji) -- radius kecil konsisten dgn KPI, tanpa shadow */
 .action {{ background:var(--kartu); border:1px solid var(--garis); border-left:3px solid;
@@ -101,6 +101,16 @@ section[data-testid="stSidebar"] * {{ color:var(--teks) !important; }}
 
 table {{ font-size:.9rem; }}
 .stDataFrame {{ border:1px solid var(--garis); border-radius:8px; }}
+
+/* legend chart custom (Tahap B) -- ganti legend Plotly bawaan (showlegend=
+   False di semua trace charts.py). Plotly default render swatch kotak kecil
+   putus-putus kalau trace campur fill+dash (terlihat "seperti noda") dan
+   tak bisa diatur tipografi/spacing-nya konsisten sistem desain -- ini
+   satu-satunya elemen visual yang masih "bawaan library" sebelum Tahap B. */
+.chart-legend {{ display:flex; flex-wrap:wrap; gap:6px 16px; margin:2px 0 12px; }}
+.chart-legend .item {{ display:flex; align-items:center; gap:6px;
+  font-size:.8rem; color:var(--teks-lemah); }}
+.chart-legend .swatch {{ width:10px; height:10px; border-radius:3px; flex-shrink:0; }}
 
 /* tabel HTML custom (to_html manual, mis. tabel status pill -- st.dataframe()
    TAK bisa render HTML/warna per sel dengan mudah, jadi tabel ini tetap HTML
@@ -169,6 +179,21 @@ def section(title: str, sub: str = ""):
     st.markdown(f'<div class="section">{title}</div>', unsafe_allow_html=True)
     if sub:
         st.markdown(f'<div class="section-sub">{sub}</div>', unsafe_allow_html=True)
+
+
+def legend(items: list):
+    """Legend chart custom -- pengganti legend Plotly bawaan (Tahap B).
+    items: list (warna_css, label) -- warna_css bisa hex '#RRGGBB' ATAU
+    string rgba() (lewat tint()) untuk chip area yang perlu terlihat pudar.
+    Satu fungsi dipakai forecast_chart maupun inventory_bar -- swatch
+    persegi kecil seragam, bukan bentuk beda per jenis trace (garis/area/
+    marker), supaya konsisten & sederhana (YAGNI: tak perlu bentuk swatch
+    berbeda-beda selama warna+label sudah cukup jelas)."""
+    chips = "".join(
+        f'<span class="item"><span class="swatch" style="background:{warna}"></span>{label}</span>'
+        for warna, label in items
+    )
+    st.markdown(f'<div class="chart-legend">{chips}</div>', unsafe_allow_html=True)
 
 
 def riset_tag(text: str):

@@ -12,23 +12,15 @@ _TICKFORMAT_TGL = "%d/%m"  # sumbu-x numerik (hindari nama bulan Inggris
                            # Plotly, d3-time-format-nya tak punya locale ID)
 
 
-def _rgba(hex_color: str, alpha: float) -> str:
-    """hex '#RRGGBB' -> string rgba() Plotly. Dihitung dari token WARNA,
-    BUKAN hardcode ulang -- bug Tahap 1: rgba(14,138,107,..) (hijau lama)
-    diketik manual, terlewat saat token ganti navy karena bukan referensi
-    ke WARNA['primer']."""
-    h = hex_color.lstrip("#")
-    r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
-    return f"rgba({r},{g},{b},{alpha})"
-
-
 _LAYOUT = dict(
     font=dict(family="Plus Jakarta Sans, sans-serif", color=WARNA["teks"], size=13),
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
     margin=dict(l=10, r=10, t=30, b=10),
     hovermode="x unified",
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
+    showlegend=False,  # Tahap B: legend Plotly bawaan dimatikan total,
+                       # diganti ui.legend() HTML custom (swatch rapi,
+                       # konsisten tipografi sistem desain -- lihat views/).
 )
 _GRID = dict(showgrid=True, gridcolor=WARNA["garis"], zeroline=False)
 
@@ -54,8 +46,8 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
     fig.add_trace(go.Scatter(
         x=list(future.date) + list(future.date[::-1]),
         y=list(future.yhat_upper) + list(future.yhat_lower[::-1]),
-        fill="toself", fillcolor=_rgba(WARNA["primer"], .20),
-        line=dict(color=_rgba(WARNA["primer"], .45), width=1, dash="dot"),
+        fill="toself", fillcolor=ui.tint(WARNA["primer"], .20),
+        line=dict(color=ui.tint(WARNA["primer"], .45), width=1, dash="dot"),
         hoverinfo="skip", name="Rentang perkiraan",
     ))
     # penjualan sebelumnya
@@ -117,14 +109,24 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
 
     lay = _layout(hovermode="x unified")
     fig.update_layout(**lay, height=380, yaxis_title=f"Unit ({satuan})")
-    fig.update_xaxes(**_GRID, fixedrange=True, tickformat=_TICKFORMAT_TGL)  # matikan geser/zoom
+    # Tahap B: zoom sumbu-x DIAKTIFKAN (fixedrange=False) -- pengguna bisa
+    # drag-select memperbesar area padat untuk lihat detail tanggal harian
+    # (riwayat 90 hari + horizon bikin tick otomatis Plotly jadi ~2 mingguan,
+    # keluhan "rentang waktu tak bisa dibuat detail"). Sumbu-y TETAP terkunci
+    # supaya proporsi jumlah unit tak berubah-ubah saat zoom-x, mencegah
+    # kesan menyesatkan (grafik "melonjak" cuma karena rescale otomatis).
+    fig.update_xaxes(**_GRID, fixedrange=False, tickformat=_TICKFORMAT_TGL)
     fig.update_yaxes(**_GRID, fixedrange=True)
     return fig
 
 
 def inventory_bar(tbl: pd.DataFrame):
     """Bar stok vs ROP per bahan baku, diwarnai status. Hover per-item (closest)."""
-    warna = {"Kritis": WARNA["kritis"], "Waspada": WARNA["waspada"], "Aman": WARNA["aman"]}
+    # Tahap B: warna bar pakai token *_bar (muted) -- BUKAN kritis/waspada/
+    # aman biasa (itu saturasi penuh, dipakai pill/teks). Area bar besar
+    # dengan saturasi penuh "berteriak" bentrok navy tenang komponen lain.
+    warna = {"Kritis": WARNA["kritis_bar"], "Waspada": WARNA["waspada_bar"],
+            "Aman": WARNA["aman_bar"]}
     sat = tbl["Satuan"].tolist()
     fig = go.Figure()
     fig.add_trace(go.Bar(
@@ -134,10 +136,14 @@ def inventory_bar(tbl: pd.DataFrame):
         text=tbl["Stok"], textposition="outside", cliponaxis=False,
         hovertemplate="<b>%{y}</b><br>Stok: %{x} %{customdata}<extra></extra>",
     ))
+    # Marker ROP: WARNA['teks'] (nyaris hitam) -- bukan sekunder abu-abu lagi,
+    # kontras rendah di atas bar (terutama bar pendek: Mentega, Tepung
+    # Terigu). width/size dinaikkan supaya tetap kelihatan di bar sependek
+    # apapun.
     fig.add_trace(go.Scatter(
         y=tbl["Bahan Baku"], x=tbl["ROP"], mode="markers",
-        marker=dict(symbol="line-ns", size=22, color=WARNA["sekunder"],
-                    line=dict(width=3, color=WARNA["sekunder"])),
+        marker=dict(symbol="line-ns", size=26, color=WARNA["teks"],
+                    line=dict(width=4, color=WARNA["teks"])),
         name="Batas aman (ROP)", customdata=sat,
         hovertemplate="<b>%{y}</b><br>Batas aman (ROP): %{x:.0f} %{customdata}<extra></extra>",
     ))
@@ -145,13 +151,17 @@ def inventory_bar(tbl: pd.DataFrame):
     if "EOQ" in tbl.columns:
         fig.add_trace(go.Scatter(
             y=tbl["Bahan Baku"], x=tbl["EOQ"], mode="markers",
-            marker=dict(symbol="line-ns", size=22, color="#F4B400",
-                        line=dict(width=3, color="#F4B400")),
+            marker=dict(symbol="line-ns", size=26, color="#F4B400",
+                        line=dict(width=4, color="#F4B400")),
             name="Jumlah beli ideal (EOQ)", customdata=sat,
             hovertemplate="<b>%{y}</b><br>EOQ (beli sekali pesan): %{x:.0f} %{customdata}<extra></extra>",
         ))
-    # hovermode 'closest' -> hanya item yang ditunjuk; fixedrange -> tak bisa digeser
-    lay = _layout(hovermode="closest")
+    # hovermode 'closest' -> hanya item yang ditunjuk; fixedrange -> tak bisa
+    # digeser (sumbu x di sini JUMLAH, bukan tanggal -- keputusan zoom
+    # Tahap B soal "detail rentang waktu" tak relevan untuk chart ini).
+    # margin r=40 (bukan 10 default) -- beri ruang napas label angka
+    # "outside" yang dulu mepet ke ujung bar.
+    lay = _layout(hovermode="closest", margin=dict(l=10, r=40, t=30, b=10))
     fig.update_layout(**lay, height=330, xaxis_title="Jumlah (satuan masing-masing)")
     fig.update_xaxes(**_GRID, fixedrange=True)
     fig.update_yaxes(showgrid=False, fixedrange=True)

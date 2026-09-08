@@ -10,7 +10,7 @@ import pandas as pd
 
 from components import ui, charts
 from core.inventory import inventory_table, material_demand_7d
-from config import BAHAN_BAKU
+from config import BAHAN_BAKU, WARNA
 
 NO_BAR = {"displayModeBar": False}
 
@@ -67,8 +67,14 @@ def render(df):
                "(kuantitas optimal sekali pesan).")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    ui.section("Posisi Stok terhadap Batas Aman",
-               "Garis abu-abu = batas aman (ROP), garis kuning = jumlah beli ideal (EOQ)")
+    ui.section("Posisi Stok terhadap Batas Aman", "")
+    ui.legend([
+        (WARNA["kritis_bar"], "Segera beli"),
+        (WARNA["waspada_bar"], "Perhatikan"),
+        (WARNA["aman_bar"], "Aman"),
+        (WARNA["teks"], "Batas aman (ROP)"),
+        ("#F4B400", "Jumlah beli ideal (EOQ)"),
+    ])
     st.plotly_chart(charts.inventory_bar(inv), use_container_width=True, config=NO_BAR)
 
     st.markdown("<br>", unsafe_allow_html=True)
