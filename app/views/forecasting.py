@@ -69,7 +69,6 @@ def render(df):
     ])
     st.plotly_chart(charts.forecast_chart(hist, fut, satuan),
                     use_container_width=True, config=NO_BAR)
-    ui.label_sumbu_tanggal()
     ui.petunjuk_geser("Bisa digeser untuk lihat rentang tanggal lain")
 
     st.markdown("<br>", unsafe_allow_html=True)

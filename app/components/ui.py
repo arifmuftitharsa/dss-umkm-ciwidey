@@ -196,33 +196,17 @@ def legend(items: list):
     st.markdown(f'<div class="chart-legend">{chips}</div>', unsafe_allow_html=True)
 
 
-def label_sumbu_tanggal():
-    """Label "Tanggal" HTML biasa -- BUKAN xaxis_title Plotly (SVG), yang
-    terbukti rawan artefak render di devicePixelRatio pecahan (mis. 1.25,
-    scaling Windows 125%) tak peduli font.size berapa pun (lihat evidence/
-    2026-09-08-hapus-title-fix-dpr/CATATAN.md). Elemen HTML di-render browser
-    native, sepenuhnya di luar jalur SVG yang rawan itu. Rata TENGAH (beda
-    dari petunjuk_geser yang rata kiri) -- sejajar visual dengan sumbu-x yang
-    ter-center di bawah plot area, dan membedakan diri dari caption fungsi
-    supaya pengguna tak mengira keduanya satu jenis teks."""
-    st.markdown(
-        f'<div style="text-align:center;color:{WARNA["teks_lemah"]};'
-        f'font-size:.85rem;margin:.25rem 0 0;">Tanggal</div>',
-        unsafe_allow_html=True,
-    )
-
-
 def petunjuk_geser(text: str):
-    """Hint kecil di bawah label_sumbu_tanggal() -- rata KIRI sejajar
+    """Hint kecil di bawah chart yang punya rangeslider -- rata KIRI sejajar
     sumbu-y (bukan st.caption bawaan yang center), warna teks_lemah, ikon
-    panah. margin-top KONSISTEN kecil (.25rem, bukan margin negatif seperti
-    versi sebelumnya) -- margin negatif dulu dipakai utk kompres jarak ke
-    rangeslider, begitu label_sumbu_tanggal() disisipkan DI ATASnya, margin
-    negatif itu bikin dua elemen bertabrakan. Spacing wajar tanpa hack lebih
-    tahan terhadap penambahan elemen baru di masa depan."""
+    panah. margin-top .5rem -- label_sumbu_tanggal() (dulu di sini) sudah
+    DIHAPUS TOTAL (keputusan final Arif, xaxis title tak diperlukan sama
+    sekali), jadi caption ini sekarang langsung di bawah rangeslider tanpa
+    elemen perantara -- margin dinaikkan dari .25rem supaya tetap ada jarak
+    wajar, tak nempel rangeslider."""
     st.markdown(
         f'<div style="color:{WARNA["teks_lemah"]};font-size:.8rem;'
-        f'margin-top:.25rem;">↔ {text}</div>',
+        f'margin-top:.5rem;">↔ {text}</div>',
         unsafe_allow_html=True,
     )
 

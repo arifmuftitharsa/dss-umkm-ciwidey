@@ -100,7 +100,6 @@ def render(df):
     hist, fut, _ = forecast_future(df, pid_utama)
     st.plotly_chart(charts.forecast_chart(hist, fut, produk[pid_utama]["satuan"]),
                     use_container_width=True, config=NO_BAR)
-    ui.label_sumbu_tanggal()
     ui.petunjuk_geser("Bisa digeser untuk lihat rentang tanggal lain")
 
     st.markdown("<br>", unsafe_allow_html=True)

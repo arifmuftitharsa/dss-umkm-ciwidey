@@ -84,7 +84,7 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
                           line=dict(color="#E0A100", width=1, dash="dash"))
         fig.add_trace(go.Scatter(
             x=hol.date, y=hol.yhat, mode="markers",
-            marker=dict(size=14, color="#F4B400", symbol="circle",
+            marker=dict(size=11, color="#F4B400", symbol="circle",
                         line=dict(width=2, color="#B5731A")),
             name="Hari libur / event",
             customdata=hol_label,
@@ -99,7 +99,7 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
             hol_h_label = [ui.tanggal_id(d, hari_penuh=False) for d in hol_h.date]
             fig.add_trace(go.Scatter(
                 x=hol_h.date, y=hol_h.quantity_sold, mode="markers",
-                marker=dict(size=11, color="#F4B400", symbol="circle",
+                marker=dict(size=9, color="#F4B400", symbol="circle",
                             line=dict(width=1.5, color="#B5731A")),
                 name="Libur (lampau)", showlegend=False,
                 customdata=hol_h_label,
@@ -122,31 +122,28 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
     #
     # Rangeslider (percobaan ke-4 navigasi rentang waktu -- riwayat lengkap
     # di evidence/2026-09-08-rangeslider-custom-final/CATATAN.md) dengan
-    # styling custom: bgcolor navy pudar + bordercolor navy solid + border
-    # 2px supaya terlihat sebagai KONTROL sistem desain, bukan elemen Plotly
-    # generik. Rangeselector (percobaan ke-2) dan tombol Streamlit custom
-    # (percobaan ke-3, commit ed01ceb) sudah dihapus -- Arif pilih drag
-    # langsung.
+    # styling custom: bgcolor navy pudar + bordercolor navy solid supaya
+    # terlihat sebagai KONTROL sistem desain, bukan elemen Plotly generik.
+    # borderwidth 2->1 -- diperhalus, kontras cukup datang dari warna,
+    # ketebalan 2px terasa kasar. Marker hari libur (di atas) turut
+    # dikecilkan 14->11/11->9 -- Plotly TAK punya parameter ukuran marker
+    # terpisah utk rangeslider vs grafik utama (rangeslider render ulang
+    # trace yang sama persis, satu-satunya cara mengecilkan tampilannya di
+    # rangeslider adalah mengecilkan marker.size di sumbernya, ikut
+    # memengaruhi grafik utama juga -- diverifikasi dari dokumentasi
+    # Plotly, bukan keterbatasan kode kita). Rangeselector (percobaan ke-2)
+    # dan tombol Streamlit custom (percobaan ke-3, commit ed01ceb) sudah
+    # dihapus -- Arif pilih drag langsung.
     #
-    # xaxis.title ("Tanggal") DIHAPUS TOTAL -- akar 2 masalah sekaligus:
-    # (1) regresi teks "Tanqqal": DOM dikonfirmasi devicePixelRatio layar
-    # Arif 1.25 (scaling Windows 125%), fractional DPR dikenal memicu
-    # artefak anti-aliasing teks SVG kecil -- kluster "gg" jadi blur,
-    # independen dari font.size berapa pun dicoba (16px sudah dites,
-    # tetap muncul lagi di DPR pecahan). (2) Plotly TAK punya parameter
-    # menaruh xaxis.title DI ATAS rangeslider -- title axis selalu
-    # dirender PALING BAWAH kompleks sumbu-x (setelah rangeslider), bukan
-    # bug kode, keterbatasan render-pipeline Plotly. Menghapus title
-    # sekaligus selesaikan keduanya: tick tanggal (format DD/MM) sudah
-    # cukup jelas maknanya tanpa label terpisah, dan urutan visual otomatis
-    # benar (Grafik -> tick -> rangeslider -> caption "Geser..." di
-    # views/, bukan bagian fig ini).
+    # xaxis.title ("Tanggal") DIHAPUS TOTAL (bukan cuma dipindah ke HTML
+    # seperti percobaan sebelumnya) -- keputusan FINAL Arif, tak diperlukan
+    # sama sekali. tick tanggal (format DD/MM) sudah cukup jelas maknanya.
     fig.update_xaxes(
         **_GRID, fixedrange=False, tickformat=_TICKFORMAT_TGL,
         rangeslider=dict(
             visible=True, thickness=.08,
             bgcolor=ui.tint(WARNA["primer"], .12),
-            bordercolor=WARNA["primer"], borderwidth=2,
+            bordercolor=WARNA["primer"], borderwidth=1,
         ),
     )
     fig.update_yaxes(**_GRID, fixedrange=True)
