@@ -17,7 +17,7 @@ APP_NAME = "UPStock"
 
 # IDENTITAS STUDI KASUS
 STUDI_KASUS = {
-    "nama": "UMKM Olahan Stroberi — Desa Wisata Alamendah",
+    "nama": "UMKM Olahan Stroberi, Desa Wisata Alamendah",
     "lokasi": "Ciwidey, Kabupaten Bandung, Jawa Barat",
     "koordinat": (-7.1167, 107.3833),  # Ciwidey, dipakai untuk fetch Open-Meteo
     "horizon_hari": 7,                  # short-term forecasting (Sec. batasan masalah)

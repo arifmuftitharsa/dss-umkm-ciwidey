@@ -69,7 +69,7 @@ def render(df):
 
     st.markdown("<br>", unsafe_allow_html=True)
     ui.section("Posisi Stok terhadap Batas Aman",
-               "Garis biru = batas aman (ROP) · garis kuning = jumlah beli ideal (EOQ)")
+               "Garis abu-abu = batas aman (ROP), garis kuning = jumlah beli ideal (EOQ)")
     st.plotly_chart(charts.inventory_bar(inv), use_container_width=True, config=NO_BAR)
 
     st.markdown("<br>", unsafe_allow_html=True)

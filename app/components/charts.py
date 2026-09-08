@@ -12,6 +12,16 @@ _TICKFORMAT_TGL = "%d/%m"  # sumbu-x numerik (hindari nama bulan Inggris
                            # Plotly, d3-time-format-nya tak punya locale ID)
 
 
+def _rgba(hex_color: str, alpha: float) -> str:
+    """hex '#RRGGBB' -> string rgba() Plotly. Dihitung dari token WARNA,
+    BUKAN hardcode ulang -- bug Tahap 1: rgba(14,138,107,..) (hijau lama)
+    diketik manual, terlewat saat token ganti navy karena bukan referensi
+    ke WARNA['primer']."""
+    h = hex_color.lstrip("#")
+    r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({r},{g},{b},{alpha})"
+
+
 _LAYOUT = dict(
     font=dict(family="Plus Jakarta Sans, sans-serif", color=WARNA["teks"], size=13),
     paper_bgcolor="rgba(0,0,0,0)",
@@ -44,8 +54,8 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
     fig.add_trace(go.Scatter(
         x=list(future.date) + list(future.date[::-1]),
         y=list(future.yhat_upper) + list(future.yhat_lower[::-1]),
-        fill="toself", fillcolor="rgba(14,138,107,.20)",
-        line=dict(color="rgba(14,138,107,.45)", width=1, dash="dot"),
+        fill="toself", fillcolor=_rgba(WARNA["primer"], .20),
+        line=dict(color=_rgba(WARNA["primer"], .45), width=1, dash="dot"),
         hoverinfo="skip", name="Rentang perkiraan",
     ))
     # penjualan sebelumnya

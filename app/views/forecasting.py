@@ -60,8 +60,8 @@ def render(df):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    ui.section(f"Grafik Perkiraan — {produk[pid]['nama']}",
-               "Garis hijau = perkiraan; area terang = rentang kemungkinan")
+    ui.section(f"Grafik Perkiraan Produk {produk[pid]['nama']}",
+               "Garis biru tua = perkiraan; area terang = rentang kemungkinan")
     st.plotly_chart(charts.forecast_chart(hist, fut, satuan),
                     use_container_width=True, config=NO_BAR)
 

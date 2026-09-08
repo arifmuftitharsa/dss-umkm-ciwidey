@@ -18,7 +18,7 @@ NO_BAR = {"displayModeBar": False}
 def render(df):
     st.markdown("## Ringkasan Operasional")
     st.markdown(
-        f'<div class="section-sub">{STUDI_KASUS["nama"]} · pantauan minggu ini '
+        f'<div class="section-sub">{STUDI_KASUS["nama"]}, pantauan minggu ini '
         f'({STUDI_KASUS["horizon_hari"]} hari ke depan)</div>',
         unsafe_allow_html=True,
     )
@@ -63,10 +63,10 @@ def render(df):
         # dihitung dinamis dari mu di database supaya tetap benar berapa
         # pun produk ditambah/dihapus lewat dashboard.
         pid_utama = max(produk, key=lambda pid: produk[pid]["mu"])
-        ui.section(f"Perkiraan Penjualan — {produk[pid_utama]['nama']}",
-                   "Produk dengan penjualan tertinggi. Garis biru = penjualan 60 hari "
-                   "lalu, garis hijau = perkiraan 7 hari, area hijau muda = rentang "
-                   "kemungkinan (bisa lebih tinggi/rendah).")
+        ui.section(f"Perkiraan Penjualan Produk {produk[pid_utama]['nama']}",
+                   "Produk dengan penjualan tertinggi. Garis abu-abu = penjualan 60 "
+                   "hari lalu, garis biru tua = perkiraan 7 hari, area biru muda = "
+                   "rentang kemungkinan (bisa lebih tinggi/rendah).")
         hist, fut, _ = forecast_future(df, pid_utama)
         st.plotly_chart(charts.forecast_chart(hist, fut, produk[pid_utama]["satuan"]),
                         use_container_width=True, config=NO_BAR)
@@ -90,7 +90,7 @@ def render(df):
         if _ada_spike(df, produk):
             ui.action(
                 "Perkiraan lonjakan penjualan minggu ini",
-                "Ada akhir pekan atau hari libur. Penjualan cenderung naik — "
+                "Ada akhir pekan atau hari libur. Penjualan cenderung naik, "
                 "siapkan stok lebih banyak.",
                 "info")
 
