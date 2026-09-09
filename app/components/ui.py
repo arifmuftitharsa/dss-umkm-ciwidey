@@ -28,6 +28,17 @@ def tanggal_id(dt, hari_penuh: bool = True) -> str:
     return f"{hari[:3]} {dt.day:02d} {bulan}"
 
 
+def format_angka(n: float) -> str:
+    """Format angka bulat tanpa desimal (mis. 42 bukan 42.0), tapi TETAP
+    tampilkan desimal kalau memang pecahan sungguhan (mis. 42.5) -- kolom
+    `stok` di database bertipe REAL (data/store.py), bisa legitimately
+    pecahan (sisa pemakaian bahan baku), jadi tak boleh asal int()/potong
+    yang akan menyembunyikan pecahan asli. Dipakai bareng di kartu aksi
+    (views/overview.py) dan label bar chart (components/charts.py) --
+    satu sumber format, bukan diduplikasi per pemanggil."""
+    return f"{n:.0f}" if n == int(n) else f"{n:.1f}"
+
+
 def tint(hex_color: str, alpha: float) -> str:
     """hex '#RRGGBB' -> rgba() CSS, dihitung dari token WARNA. BUKAN hardcode
     tint terpisah -- bug Tahap 2 (rgba hijau lama di charts.py) berulang di

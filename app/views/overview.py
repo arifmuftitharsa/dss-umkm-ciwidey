@@ -29,6 +29,19 @@ def render(df):
     # berulang) -- diteruskan sebagai argumen ke _ada_spike/_ada_libur_nasional.
     produk = store.get_produk_dict()
 
+    # Guard fail-fast (temuan audit #3): produk kosong (semua dihapus lewat
+    # Manajemen & Pengaturan) bikin pid_utama = max(produk, ...) di bawah
+    # lempar ValueError -- halaman crash total tanpa pesan. Tangani di sini,
+    # SEBELUM logika lain jalan, dengan pesan ramah Bahasa Indonesia --
+    # bukan biarkan traceback teknis sampai ke pemilik UMKM.
+    if not produk:
+        ui.action(
+            "Belum ada produk terdaftar",
+            "Tambahkan produk dulu di halaman Manajemen & Pengaturan supaya "
+            "perkiraan penjualan dan kebutuhan bahan baku bisa dihitung.",
+            "info")
+        return
+
     inv = inventory_table(df)
     kritis = inv[inv.Status == "Kritis"]
     waspada = inv[inv.Status == "Waspada"]
@@ -46,8 +59,12 @@ def render(df):
         ui.kpi("Perkiraan Penjualan", f"{total_unit:,}".replace(",", "."),
                "total unit 7 hari ke depan")
     with c2:
-        ui.kpi("Bahan Perlu Dibeli", f"{len(kritis)}",
-               f"{len(waspada)} lainnya mulai menipis")
+        # temuan audit #4: subtext "0 lainnya mulai menipis" berdampingan
+        # value "0" terasa redundan saat semua stok aman -- kondisikan
+        # pesannya, bukan selalu tampilkan hitungan waspada mentah.
+        sub_bahan = ("Semua stok aman" if len(kritis) == 0 and len(waspada) == 0
+                    else f"{len(waspada)} lainnya mulai menipis")
+        ui.kpi("Bahan Perlu Dibeli", f"{len(kritis)}", sub_bahan)
     with c3:
         ada_libur = _ada_libur_nasional(df, produk)
         ui.kpi("Hari Libur Nasional", "Ada" if ada_libur else "Tidak",
@@ -65,14 +82,15 @@ def render(df):
     for _, r in kritis.iterrows():
         ui.action(
             f"Segera beli {r['Bahan Baku']}",
-            f"Stok tinggal {r['Stok']} {r['Satuan']}, sudah di bawah batas aman. "
-            f"Disarankan beli sekitar {r['Saran Order (≈EOQ)']:.0f} {r['Satuan']}. "
-            f"Pesanan biasanya tiba {r['Lead Time (hari)']} hari.",
+            f"Stok tinggal {ui.format_angka(r['Stok'])} {r['Satuan']}, sudah di bawah "
+            f"batas aman. Disarankan beli sekitar {r['Saran Order (≈EOQ)']:.0f} "
+            f"{r['Satuan']}. Pesanan biasanya tiba {r['Lead Time (hari)']} hari.",
             "kritis")
     for _, r in waspada.iterrows():
         ui.action(
             f"{r['Bahan Baku']} mulai menipis",
-            f"Stok {r['Stok']} {r['Satuan']}. Siapkan pembelian dalam beberapa hari.",
+            f"Stok {ui.format_angka(r['Stok'])} {r['Satuan']}. Siapkan pembelian "
+            f"dalam beberapa hari.",
             "waspada")
     if _ada_spike(df, produk):
         ui.action(
@@ -104,7 +122,7 @@ def render(df):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    ui.section("Kondisi Stok Bahan Baku", "")
+    ui.section("Kondisi Stok Bahan Baku", "Level stok saat ini dibanding batas aman")
     ui.legend([
         (WARNA["kritis_bar"], "Segera beli"),
         (WARNA["waspada_bar"], "Perhatikan"),

@@ -177,7 +177,7 @@ def inventory_bar(tbl: pd.DataFrame):
     # bukan cuma pada gejala yang kebetulan ketahuan.
     for _, row in tbl.iterrows():
         fig.add_annotation(
-            x=row["Stok"], y=row["Bahan Baku"], text=str(row["Stok"]),
+            x=row["Stok"], y=row["Bahan Baku"], text=ui.format_angka(row["Stok"]),
             showarrow=False, xanchor="left", xshift=6,
             font=dict(size=13, color=WARNA["teks"]),
             bgcolor="rgba(255,255,255,.75)",
