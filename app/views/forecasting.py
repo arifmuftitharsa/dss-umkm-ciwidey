@@ -35,13 +35,16 @@ def render(df):
                                format_func=lambda d: f"{d} hari")
 
     # Hanya horizon 30 yang melewati batas prakiraan cuaca numerik (16 hari).
+    # Visual diperhalus (st.warning kuning -> ui.action info navy) konsisten
+    # dgn perbaikan kotak Catat Penjualan (commit 0da1e43) -- isi teks & kondisi
+    # kapan tampil TETAP SAMA, cuma bungkusnya yang diganti.
     if horizon > MAX_FORECAST_DAYS:
-        st.warning(
-            f"Prakiraan cuaca hanya tersedia sampai hari ke-{MAX_FORECAST_DAYS}. "
+        ui.action(
+            f"Prakiraan cuaca hanya tersedia sampai hari ke-{MAX_FORECAST_DAYS}",
             f"Hari ke-{MAX_FORECAST_DAYS + 1} sampai ke-{horizon} memakai rata-rata "
             "curah hujan bulanan Ciwidey, sehingga cocok untuk perencanaan kasar, "
-            "bukan keputusan harian."
-        )
+            "bukan keputusan harian.",
+            "info")
 
     hist, fut, _ = forecast_future(df, pid, MODEL_TERBAIK, horizon=horizon)
     satuan = produk[pid]["satuan"]
