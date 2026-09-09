@@ -22,6 +22,7 @@ import numpy as np
 import pandas as pd
 import requests
 
+from components import ui
 from config import STUDI_KASUS
 
 logger = logging.getLogger(__name__)
@@ -315,7 +316,11 @@ def list_holidays_with_window(years):
     for tgl, nama in sorted(hmap.items()):
         lo, hi = _window_for(nama)
         rows.append({
-            "Tanggal": pd.Timestamp(tgl).strftime("%Y-%m-%d"),
+            # temuan audit #1 (halaman Manajemen & Pengaturan): ISO mentah
+            # ("2025-01-01") diganti ui.tanggal_id() -- konsisten format
+            # tanggal Bahasa Indonesia yang dipakai di SELURUH halaman lain
+            # (Ringkasan, Perkiraan, Rincian per Hari), bukan cuma di sini.
+            "Tanggal": ui.tanggal_id(pd.Timestamp(tgl)),
             "Hari Libur Nasional": nama,
             "Efek mulai": f"H{lo} ({abs(lo)} hari sebelum libur)",
             "Efek sampai": f"H+{hi} ({hi} hari sesudah libur)",

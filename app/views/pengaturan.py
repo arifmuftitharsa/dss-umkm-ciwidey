@@ -102,105 +102,122 @@ def render():
         from data import record_sales
 
         prod_map = store.get_produk_dict()
-        mulai_operasional = store.get_tanggal_mulai_operasional()
-        hari_ini = pd.Timestamp.now().normalize()
 
-        if mulai_operasional is None:
-            # Titik reset (T-1) belum diaktifkan -- form pencatatan terkunci.
-            # Data yang ada masih 100% data latihan sintetis (2023-2025).
-            pid_sel = st.selectbox("Produk", list(prod_map.keys()),
-                                   format_func=lambda k: prod_map[k]["nama"],
-                                   key="rec_pid")
+        # Guard fail-fast (temuan audit #2, halaman Manajemen & Pengaturan):
+        # produk kosong (semua dihapus lewat tab Produk) bikin
+        # st.selectbox("Produk", []) kembalikan pid_sel=None, yang lalu
+        # dipakai ke record_sales.sudah_tercatat_hari_ini/next_valid_date/
+        # manual_records/last_records -- berpotensi error atau (lebih
+        # parah, di last_records) diam-diam tampilkan riwayat SEMUA produk
+        # tercampur (filter `if product_id:` lolos untuk None). Guard di
+        # SINI, SEBELUM pid_sel dipakai sama sekali -- pola & gaya pesan
+        # konsisten dgn guard produk kosong di views/overview.py.
+        if not prod_map:
             ui.action(
-                "Sistem masih memakai data latihan",
-                "Bukan catatan penjualan asli. Aktifkan data real dulu sebelum "
-                "mulai mencatat penjualan sungguhan -- data latihan lama tidak "
-                "lagi dipakai untuk menghitung tren setelah ini.",
-                "info",
-            )
-            konfirmasi = st.checkbox(
-                f"Saya paham, mulai catat data asli mulai hari ini "
-                f"({hari_ini.date()}), data latihan lama tidak lagi dipakai "
-                f"untuk hitung tren.",
-                key="konfirmasi_reset_operasional",
-            )
-            if st.button("🚀 Mulai Pakai Data Real Hari Ini", type="primary",
-                        disabled=not konfirmasi):
-                store.set_tanggal_mulai_operasional(hari_ini)
-                try:
-                    import core.forecasting as fc
-                    fc._HIST = None
-                except Exception:
-                    pass
-                st.rerun()
+                "Belum ada produk terdaftar",
+                "Tambahkan produk dulu di tab Produk supaya penjualan bisa "
+                "dicatat.",
+                "info")
         else:
-            cc1, cc2, cc3 = st.columns([2, 1, 1])
-            with cc1:
+            mulai_operasional = store.get_tanggal_mulai_operasional()
+            hari_ini = pd.Timestamp.now().normalize()
+
+            if mulai_operasional is None:
+                # Titik reset (T-1) belum diaktifkan -- form pencatatan terkunci.
+                # Data yang ada masih 100% data latihan sintetis (2023-2025).
                 pid_sel = st.selectbox("Produk", list(prod_map.keys()),
                                        format_func=lambda k: prod_map[k]["nama"],
                                        key="rec_pid")
-
-            if record_sales.sudah_tercatat_hari_ini(pid_sel):
-                # Tanggal valid berikutnya untuk produk ini sudah lewat hari
-                # sungguhan sekarang -- jangan render date_input (min_value
-                # > max_value akan ditolak Streamlit). Per produk: produk
-                # lain di dropdown mungkin belum tercatat, tetap bisa dipilih.
-                terbaru = record_sales.last_records(pid_sel, n=1)
-                if not terbaru.empty:
-                    b = terbaru.iloc[0]
-                    st.success(
-                        f"✓ Sudah tercatat untuk hari ini: {prod_map[pid_sel]['nama']}, "
-                        f"{int(b['Terjual'])} unit ({b['Tanggal']}). Kembali lagi besok "
-                        f"untuk mencatat penjualan berikutnya.")
-                else:
-                    st.success("✓ Sudah tercatat untuk hari ini. Kembali lagi besok "
-                              "untuk mencatat penjualan berikutnya.")
+                ui.action(
+                    "Sistem masih memakai data latihan",
+                    "Bukan catatan penjualan asli. Aktifkan data real dulu sebelum "
+                    "mulai mencatat penjualan sungguhan -- data latihan lama tidak "
+                    "lagi dipakai untuk menghitung tren setelah ini.",
+                    "info",
+                )
+                konfirmasi = st.checkbox(
+                    f"Saya paham, mulai catat data asli mulai hari ini "
+                    f"({hari_ini.date()}), data latihan lama tidak lagi dipakai "
+                    f"untuk hitung tren.",
+                    key="konfirmasi_reset_operasional",
+                )
+                if st.button("🚀 Mulai Pakai Data Real Hari Ini", type="primary",
+                            disabled=not konfirmasi):
+                    store.set_tanggal_mulai_operasional(hari_ini)
+                    try:
+                        import core.forecasting as fc
+                        fc._HIST = None
+                    except Exception:
+                        pass
+                    st.rerun()
             else:
-                nxt = record_sales.next_valid_date(pid_sel)
-                with cc2:
-                    tgl = st.date_input("Tanggal penjualan",
-                                        value=nxt, min_value=nxt, max_value=hari_ini)
-                with cc3:
-                    qty = st.number_input("Jumlah terjual", min_value=0, step=1)
+                cc1, cc2, cc3 = st.columns([2, 1, 1])
+                with cc1:
+                    pid_sel = st.selectbox("Produk", list(prod_map.keys()),
+                                           format_func=lambda k: prod_map[k]["nama"],
+                                           key="rec_pid")
 
-                st.caption(f"📅 Tanggal valid berikutnya: **{nxt.date()}**, pencatatan "
-                           f"berurutan menjaga perkiraan tetap valid.")
+                if record_sales.sudah_tercatat_hari_ini(pid_sel):
+                    # Tanggal valid berikutnya untuk produk ini sudah lewat hari
+                    # sungguhan sekarang -- jangan render date_input (min_value
+                    # > max_value akan ditolak Streamlit). Per produk: produk
+                    # lain di dropdown mungkin belum tercatat, tetap bisa dipilih.
+                    terbaru = record_sales.last_records(pid_sel, n=1)
+                    if not terbaru.empty:
+                        b = terbaru.iloc[0]
+                        st.success(
+                            f"✓ Sudah tercatat untuk hari ini: {prod_map[pid_sel]['nama']}, "
+                            f"{int(b['Terjual'])} unit ({b['Tanggal']}). Kembali lagi besok "
+                            f"untuk mencatat penjualan berikutnya.")
+                    else:
+                        st.success("✓ Sudah tercatat untuk hari ini. Kembali lagi besok "
+                                  "untuk mencatat penjualan berikutnya.")
+                else:
+                    nxt = record_sales.next_valid_date(pid_sel)
+                    with cc2:
+                        tgl = st.date_input("Tanggal penjualan",
+                                            value=nxt, min_value=nxt, max_value=hari_ini)
+                    with cc3:
+                        qty = st.number_input("Jumlah terjual", min_value=0, step=1)
 
-                if st.button("🧾 Catat Penjualan", type="primary"):
-                    ok, msg = record_sales.record_one(
-                        pid_sel, prod_map[pid_sel]["nama"], tgl, qty)
-                    (st.success if ok else st.warning)(msg)
-                    if ok:
+                    st.caption(f"📅 Tanggal valid berikutnya: **{nxt.date()}**, pencatatan "
+                               f"berurutan menjaga perkiraan tetap valid.")
+
+                    if st.button("🧾 Catat Penjualan", type="primary"):
+                        ok, msg = record_sales.record_one(
+                            pid_sel, prod_map[pid_sel]["nama"], tgl, qty)
+                        (st.success if ok else st.warning)(msg)
+                        if ok:
+                            st.rerun()
+
+            # --- Koreksi / hapus catatan manual
+            manual = record_sales.manual_records(pid_sel)
+            if not manual.empty:
+                st.markdown("**Koreksi catatan manual** (data dasar tidak bisa diubah):")
+                cole1, cole2, cole3 = st.columns([1.4, 1, 1])
+                with cole1:
+                    tgl_edit = st.selectbox("Tanggal", manual["Tanggal"].tolist()[::-1],
+                                            key="edit_tgl")
+                with cole2:
+                    cur_val = int(manual[manual.Tanggal == tgl_edit]["Terjual"].iloc[0])
+                    qty_edit = st.number_input("Jumlah baru", min_value=0, step=1,
+                                               value=cur_val, key="edit_qty")
+                with cole3:
+                    st.write("")
+                    st.write("")
+                    if st.button("✏️ Perbarui"):
+                        ok, m = record_sales.update_qty(pid_sel, tgl_edit, qty_edit)
+                        (st.success if ok else st.warning)(m)
                         st.rerun()
-
-        # --- Koreksi / hapus catatan manual
-        manual = record_sales.manual_records(pid_sel)
-        if not manual.empty:
-            st.markdown("**Koreksi catatan manual** (data dasar tidak bisa diubah):")
-            cole1, cole2, cole3 = st.columns([1.4, 1, 1])
-            with cole1:
-                tgl_edit = st.selectbox("Tanggal", manual["Tanggal"].tolist()[::-1],
-                                        key="edit_tgl")
-            with cole2:
-                cur_val = int(manual[manual.Tanggal == tgl_edit]["Terjual"].iloc[0])
-                qty_edit = st.number_input("Jumlah baru", min_value=0, step=1,
-                                           value=cur_val, key="edit_qty")
-            with cole3:
-                st.write("")
-                st.write("")
-                if st.button("✏️ Perbarui"):
-                    ok, m = record_sales.update_qty(pid_sel, tgl_edit, qty_edit)
+                if st.button("🗑️ Hapus catatan terakhir"):
+                    ok, m = record_sales.delete_last(pid_sel)
                     (st.success if ok else st.warning)(m)
                     st.rerun()
-            if st.button("🗑️ Hapus catatan terakhir"):
-                ok, m = record_sales.delete_last(pid_sel)
-                (st.success if ok else st.warning)(m)
-                st.rerun()
 
-        # --- Riwayat lengkap (scrollable)
-        st.markdown("**Riwayat penjualan (terbaru di atas):**")
-        full = record_sales.last_records(pid_sel, n=10000).iloc[::-1]
-        st.dataframe(full, use_container_width=True, hide_index=True, height=320)
+            # --- Riwayat lengkap (scrollable)
+            st.markdown("**Riwayat penjualan (terbaru di atas):**")
+            full = record_sales.last_records(pid_sel, n=10000).iloc[::-1]
+            st.dataframe(full, use_container_width=True, hide_index=True, height=320)
 
     # --- TAB 5: WINDOW LIBUR
     with tab5:

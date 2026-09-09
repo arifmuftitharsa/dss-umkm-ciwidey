@@ -25,6 +25,7 @@ from __future__ import annotations
 from pathlib import Path
 import pandas as pd
 
+from components import ui
 from data import store
 from data import weather
 
@@ -147,7 +148,12 @@ def last_records(product_id: str = None, n: int = 8) -> pd.DataFrame:
         df = df[df.product_id == product_id]
     out = df.sort_values("date").tail(n)[
         ["date", "product_id", "qty_sold", "is_holiday", "holiday_window"]].copy()
-    out["date"] = out["date"].dt.strftime("%Y-%m-%d")   # buang 00:00:00
+    # temuan audit #1 (halaman Manajemen & Pengaturan): ISO mentah diganti
+    # ui.tanggal_id() -- konsisten format tanggal Bahasa Indonesia yang
+    # dipakai di seluruh halaman lain. HANYA tabel "Riwayat penjualan" (Tab
+    # 4) yang disentuh -- manual_records() (dropdown koreksi/hapus, alur
+    # T-1 sensitif) SENGAJA tak diubah, di luar cakupan temuan ini.
+    out["date"] = out["date"].apply(ui.tanggal_id)
     out = out.rename(columns={"date": "Tanggal", "product_id": "Produk",
                               "qty_sold": "Terjual", "is_holiday": "Libur",
                               "holiday_window": "Window"})
