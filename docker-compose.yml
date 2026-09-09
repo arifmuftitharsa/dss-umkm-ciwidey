@@ -7,21 +7,17 @@ services:
     restart: unless-stopped
     volumes:
       - upstock_data:/app/data
-    networks:
-      - traefik_net   # PLACEHOLDER -- ganti nama network Traefik sungguhan di server
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.upstock.rule=Host(`SUBDOMAIN_PLACEHOLDER.dawala.xxx`)"
+      - "traefik.http.routers.upstock.rule=Host(`upstock.wisataalamendah.com`)"
       - "traefik.http.routers.upstock.entrypoints=websecure"
-      - "traefik.http.routers.upstock.tls.certresolver=letsencrypt"  # PLACEHOLDER -- sesuaikan nama cert resolver
+      - "traefik.http.routers.upstock.tls.certresolver=letsencrypt"
       - "traefik.http.services.upstock.loadbalancer.server.port=8501"
     # TIDAK ada "ports:" -- container tidak bind 80/443 langsung, Traefik
-    # menjangkau lewat Docker network internal (port di label loadbalancer).
+    # menjangkau lewat Docker socket (provider docker, exposedByDefault=false,
+    # network_mode: host di sisi Traefik) -- tak perlu network kustom di sini,
+    # cukup network default (bridge), dikonfirmasi dari inspeksi server langsung.
 
 volumes:
   upstock_data:
     name: upstock_data
-
-networks:
-  traefik_net:
-    external: true   # PLACEHOLDER -- asumsi network Traefik sudah ada, ganti sesuai konfirmasi Pak Ade
