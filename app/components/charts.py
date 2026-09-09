@@ -111,7 +111,15 @@ def forecast_chart(history: pd.DataFrame, future: pd.DataFrame, satuan: str):
     # semula, sebelumnya terbukti "kurang jelas" cuma di versi TANPA warna
     # custom -- kontras di sini datang dari bgcolor/bordercolor, bukan
     # ketebalan, jadi tak perlu setebal itu lagi).
-    lay = _layout(hovermode="x unified")
+    # margin.r dinaikkan 10 -> 22px (temuan audit HP #2, rangeslider
+    # terpotong tegas di tepi kanan layar HP sungguhan): dugaan elemen
+    # leluhur Streamlit mepet/clip tepat di batas viewport, ruang napas
+    # ekstra di sisi kanan chart mencegah rangeslider ter-render pas di
+    # garis potong itu. Cuma forecast_chart() yang punya rangeslider --
+    # margin global _LAYOUT (dipakai chart lain tanpa rangeslider) sengaja
+    # TAK disentuh, konsisten pola inventory_bar() yang juga override
+    # margin sendiri (SRP: tiap chart atur ruang sesuai kebutuhannya).
+    lay = _layout(hovermode="x unified", margin=dict(l=10, r=22, t=30, b=10))
     fig.update_layout(**lay, height=420, yaxis_title=f"Unit ({satuan})")
     # Tahap B: zoom sumbu-x DIAKTIFKAN (fixedrange=False) -- pengguna bisa
     # drag-select memperbesar area padat untuk lihat detail tanggal harian

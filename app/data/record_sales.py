@@ -87,8 +87,8 @@ def _validate_sequential(tanggal, last, mulai_operasional) -> str | None:
 
     if tanggal < nxt:
         if last is not None and tanggal <= last:
-            return (f"❌ Tidak bisa mencatat {tanggal.date()} — sudah memiliki "
-                    f"data (data terakhir: {last.date()}). Pencatatan hanya "
+            return (f"❌ Tidak bisa mencatat {tanggal.date()}. Sudah ada data "
+                    f"(data terakhir: {last.date()}). Pencatatan hanya "
                     f"boleh maju ke depan, tidak menimpa masa lalu.")
         return (f"❌ Tanggal {tanggal.date()} sebelum tanggal valid berikutnya "
                 f"({nxt.date()}).")

@@ -131,7 +131,7 @@ def render():
                 ui.action(
                     "Sistem masih memakai data latihan",
                     "Bukan catatan penjualan asli. Aktifkan data real dulu sebelum "
-                    "mulai mencatat penjualan sungguhan -- data latihan lama tidak "
+                    "mulai mencatat penjualan sungguhan. Data latihan lama tidak "
                     "lagi dipakai untuk menghitung tren setelah ini.",
                     "info",
                 )

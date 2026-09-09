@@ -65,9 +65,45 @@ html, body, [class*="css"], .stApp {{
   font-family:'Plus Jakarta Sans',sans-serif; color:var(--teks);
 }}
 .stApp {{ background:{WARNA['bg']}; }}
-h1,h2,h3,h4 {{ font-family:'Source Serif 4',Georgia,serif; color:var(--teks);
-  letter-spacing:-.01em; }}
-.block-container {{ padding-top:1.8rem; max-width:1160px; }}
+/* !important WAJIB di sini: Streamlit inject CSS sendiri lewat class
+   ".st-emotion-cache-<hash> h1,h2,h3..." (hash acak tiap build, tak bisa
+   ditarget balik) dengan font-family "Source Sans" -- spesifisitas class+
+   elemen itu SELALU menang lawan selector elemen polos kita "h1,h2,h3,h4",
+   berapa pun urutan DOM-nya (CSS specificity, bukan source order). Akibatnya
+   SEMUA judul halaman (h1-h4) selama ini diam-diam jatuh ke font Source Sans
+   bawaan Streamlit, BUKAN Source Serif 4 -- dikonfirmasi lewat inspeksi
+   computed style/stylesheet langsung (bukan cuma baca kode). !important
+   ini satu-satunya cara robust menang lawan class hash yang berubah tiap
+   build Streamlit. (Audit HP Arif 9 Sept: kecurigaan awal "device-specific
+   rendering bug" gugur total setelah 8 putaran eliminasi -- terbukti bug
+   Chrome/OS di HP itu sendiri, muncul juga di situs lain (Wikipedia,
+   Medium), sama sekali di luar kendali CSS aplikasi ini.) */
+h1,h2,h3,h4 {{ font-family:'Source Serif 4',Georgia,serif !important;
+  color:var(--teks); letter-spacing:-.01em; line-height:1.15; }}
+/* margin/padding h2 dipaksa eksplisit -- Streamlit set padding:1rem 0px
+   sendiri (tak konsisten dgn margin section-sub di bawahnya), dan panjang
+   judul beda-beda (mis. "Manajemen & Pengaturan" vs "Stok & Pembelian")
+   bikin sebagian wrap 2 baris di HP sempit -- jarak ke subtitle jadi
+   keliatan tak konsisten antar halaman walau kodenya identik. Override ke
+   nilai tetap supaya jarak SAMA PERSIS di semua halaman, apapun panjang
+   teksnya atau berapa baris wrap-nya. */
+h2 {{ margin:0 0 .35rem !important; padding:0 !important; }}
+.section-sub {{ margin-top:0 !important; }}
+/* AKAR MASALAH SEBENARNYA "judul terpotong" (audit HP Arif 9 Sept, putaran
+   10): stHeader Streamlit -- bar toolbar berisi tombol collapse sidebar --
+   position:absolute, tinggi 60px, background PUTIH SOLID (bukan transparan
+   spt versi Streamlit lama), z-index 999990 (di atas segalanya). padding-top
+   .block-container SEBELUM INI cuma 1.8rem (28.8px) -- jauh di bawah 60px --
+   jadi konten (termasuk judul h1/h2 pertama di halaman) mulai DI BAWAH garis
+   yang seharusnya, tapi bar putih tetap menimpa ATAS-nya, motong cap-height/
+   ascender huruf pertama baris pertama. Dikonfirmasi lewat inspeksi bounding
+   rect langsung (bukan tebakan) -- stHeader rect {{top:0,bottom:60}} tumpang
+   tindih 28px dengan rect judul {{top:32}}. 8 percobaan sebelumnya (font,
+   ukuran, spacing, weight, transition) semua GAGAL karena bukan itu akar
+   masalahnya -- baru ketahuan setelah threshold diagnosis: elemen APA yang
+   overlap 20px teratas judul, bukan properti font judul itu sendiri.
+   4.5rem (72px) >= 60px + buffer, aman di semua breakpoint. */
+.block-container {{ padding-top:4.5rem; max-width:1160px; }}
 
 /* sidebar -- surface (beda halus dari bg putih konten), teks dipaksa gelap & terbaca */
 section[data-testid="stSidebar"] {{ background:var(--surface); border-right:1px solid var(--garis); }}
@@ -144,12 +180,28 @@ table {{ font-size:.9rem; }}
   .block-container {{ padding-left:1rem; padding-right:1rem; max-width:100%; }}
 }}
 @media (max-width: 767px) {{
-  .block-container {{ padding-top:1rem; padding-left:.75rem; padding-right:.75rem; }}
+  /* padding-top TETAP 4.5rem (bukan diturunkan lagi spt sebelumnya, yang
+     jadi penyebab utama bar putih stHeader menimpa judul di mobile --
+     lihat komentar akar masalah di atas). Cuma kiri-kanan yang dipersempit
+     utk layar sempit. */
+  .block-container {{ padding-top:4.5rem; padding-left:.75rem; padding-right:.75rem; }}
   [data-testid="stHorizontalBlock"] {{ flex-direction:column; }}
   [data-testid="stHorizontalBlock"] > div {{ width:100% !important; flex:1 1 100% !important; }}
   .kpi {{ padding:14px 16px; }}
   .kpi .value {{ font-size:1.7rem; }}
-  h2 {{ font-size:1.4rem; }}
+  /* !important WAJIB: rule ini SELAMA INI kalah spesifisitas lawan
+     ".st-emotion-cache-<hash> h2{{font-size:2.25rem}}" Streamlit -- persis
+     pola bug font-family di atas. Nilai dinaikkan bertahap 1.4rem -> 1.8rem
+     -> 2rem -> 2.25rem -> SEKARANG 2.6rem (41.6px, LEBIH BESAR dari
+     desktop) setelah dicoba langsung di HP sungguhan berkali-kali masih
+     kurang besar. */
+  h2 {{ font-size:2.6rem !important; }}
+  /* padding-right kecil khusus wrapper chart Plotly (temuan audit HP #2,
+     rangeslider terpotong tegas kanan) -- alternatif/pelengkap margin.r
+     internal Plotly di charts.py. Kalau elemen leluhur Streamlit yang
+     clip tepat di batas viewport (bukan Plotly-nya sendiri), padding di
+     LUAR canvas Plotly ini yang akan mencegahnya, bukan margin di dalam. */
+  [data-testid="stPlotlyChart"] {{ padding-right:.4rem; }}
 }}
 </style>
 """
