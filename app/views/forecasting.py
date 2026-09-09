@@ -46,8 +46,13 @@ def render(df):
     hist, fut, _ = forecast_future(df, pid, MODEL_TERBAIK, horizon=horizon)
     satuan = produk[pid]["satuan"]
 
-    total = int(fut.yhat.sum())
-    rata = int(fut.yhat.mean())
+    # round() bukan int() (truncate) -- temuan audit #4: int() selalu
+    # membulatkan ke bawah, bias sistematis kecil-tapi-konsisten meremehkan
+    # angka. Diseragamkan dgn kolom tabel "Perkiraan terjual" di bawah (juga
+    # round()) -- kalau cuma salah satu dibulatkan, total KPI bisa TAK cocok
+    # dgn jumlah baris tabel, jadi inkonsistensi baru.
+    total = round(fut.yhat.sum())
+    rata = round(fut.yhat.mean())
 
     # KPI sengaja TANPA angka akurasi/MAPE (T-19) -- data training masih
     # sintetis (T-15), angka apa pun yang menyiratkan "seberapa akurat
@@ -60,10 +65,11 @@ def render(df):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    ui.section(f"Grafik Perkiraan Produk {produk[pid]['nama']}")
+    ui.section(f"Grafik Perkiraan Produk {produk[pid]['nama']}",
+               "Riwayat penjualan dan perkiraan ke depan.")
     ui.legend([
         (WARNA["sekunder"], "Penjualan sebelumnya"),
-        (WARNA["primer"], "Perkiraan 7 hari"),
+        (WARNA["primer"], f"Perkiraan {horizon} hari"),
         (ui.tint(WARNA["primer"], .35), "Rentang kemungkinan"),
         ("#F4B400", "Hari libur / event"),
     ])
@@ -89,15 +95,20 @@ def render(df):
 
     show = pd.DataFrame({
         "Tanggal": tbl.date.apply(ui.tanggal_id),
-        "Perkiraan terjual": tbl.yhat.astype(int).astype(str) + " " + satuan,
+        "Perkiraan terjual": tbl.yhat.round().astype(int).astype(str) + " " + satuan,
         "Catatan": tbl.apply(alasan, axis=1),
     })
     st.dataframe(show, use_container_width=True, hide_index=True)
 
+    # temuan audit #2: "minggu ini" hardcode salah utk horizon 14/30 hari
+    # (bukan 1 minggu) -- diganti netral horizon, satu-satunya penyebutan
+    # rentang waktu implisit di kartu ini (dicek, tak ada tempat lain di
+    # teks yang mengasumsikan "minggu").
     ramai = tbl[(tbl.is_holiday == 1) | (tbl.is_weekend == 1)]
     if len(ramai) > 0:
         ui.action(
             "Persiapan untuk hari penjualan tinggi",
-            f"Ada {len(ramai)} hari yang diperkirakan lebih tinggi penjualannya minggu ini. "
-            "Tambah stok bahan baku dan jadwalkan produksi lebih awal.",
+            f"Ada {len(ramai)} hari yang diperkirakan lebih tinggi penjualannya "
+            f"dalam {horizon} hari ke depan. Tambah stok bahan baku dan jadwalkan "
+            "produksi lebih awal.",
             "info")
