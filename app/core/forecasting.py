@@ -70,7 +70,15 @@ def split_70_15_15(s: pd.DataFrame):
 
 
 def forecast_future(df, product_id, model_key=MODEL_TERBAIK, horizon=None):
-    """Forecast n hari ke depan + pita keyakinan. -> (history, future, sigma)."""
+    """Forecast n hari ke depan + pita keyakinan.
+    -> (history, future, sigma, cold_start: bool)
+
+    cold_start=True berarti belum ada SATU PUN catatan penjualan asli untuk
+    produk ini sejak titik reset operasional (atau produk baru tanpa riwayat
+    sama sekali) -- yhat berupa garis datar senilai mu (rata-rata dasar),
+    BUKAN hasil model. Caller (views/) memakai flag ini untuk menjelaskan ke
+    pengguna kenapa grafiknya datar, alih-alih diam-diam menampilkannya
+    seolah itu hasil perkiraan model yang normal."""
     horizon = horizon or HORIZON
 
     # T-4: daftar produk dari database (store.get_produk_dict()), bukan
@@ -90,6 +98,11 @@ def forecast_future(df, product_id, model_key=MODEL_TERBAIK, horizon=None):
     hist_all = _load_history()
     s = (hist_all[hist_all.product_id == product_id]
          .sort_values("date").reset_index(drop=True))
+    s_lengkap = s  # riwayat PENUH produk ini (termasuk sintetis pra-reset,
+                   # belum dipotong) -- disimpan terpisah sbg sumber fallback
+                   # pola variasi (lihat blok cold_start di bawah), SRP:
+                   # potongan pasca-reset (s) dan riwayat penuh (s_lengkap)
+                   # dipisah jelas, bukan ditimpa jadi satu variabel ambigu.
 
     # Titik reset operasional (T-1): begitu diaktifkan, riwayat dipotong ke
     # baris date >= mulai_operasional -- memutus rantai posisional lag/rolling
@@ -99,18 +112,35 @@ def forecast_future(df, product_id, model_key=MODEL_TERBAIK, horizon=None):
     if mulai_operasional is not None:
         s = s[s.date >= mulai_operasional].reset_index(drop=True)
 
-    if s.empty:
-        # Produk tanpa riwayat SAMA SEKALI (T-4: baru ditambah lewat
-        # dashboard, belum pernah dicatat sekali pun) -- beda dari
-        # cold-start pasca-reset T-1 (yang selalu punya mulai_operasional
-        # sebagai titik acuan). Tanpa fallback ini, last_date jadi NaT dan
-        # weather.future_exogenous(NaT, ...) crash. Forecast produk baru
-        # paling masuk akal mulai dari hari ini sungguhan.
+    # cold_start: True kalau BELUM ADA satu pun catatan asli pasca-reset
+    # untuk produk ini -- dipakai caller (views/) utk tampilkan pesan
+    # penjelasan (lihat docstring atas). Ditentukan di sini, SEBELUM
+    # percabangan fallback di bawah, supaya tak ikut berubah nilainya
+    # walau qty_hist nanti terisi lewat fallback opsi 2.
+    cold_start = s.empty
+
+    if cold_start and not s_lengkap.empty:
+        # Fallback opsi 2 (keputusan Arif 13 Sept 2026): produk belum py
+        # catatan asli pasca-reset, TAPI py riwayat lama (sintetis) -- pinjam
+        # POLA VARIASINYA (bukan cuma garis datar mu) sbg seed lag/rolling
+        # model, supaya forecast tetap informatif sementara menunggu data
+        # asli terkumpul. Tanggal forecast TETAP mulai hari ini sungguhan
+        # (last_date = kemarin), BUKAN lanjut dari tanggal riwayat lama --
+        # aturan inti T-1 (jangan campur RANTAI TANGGAL lama+baru) tetap
+        # terjaga; yang dipinjam cuma NILAI pola musiman/mingguannya, bukan
+        # kontinuitas tanggalnya.
         last_date = pd.Timestamp.now().normalize() - pd.Timedelta(days=1)
+        qty_hist = list(s_lengkap["qty_sold"].astype(float).values)
+    elif s.empty:
+        # Produk tanpa riwayat SAMA SEKALI, termasuk sintetis (T-4: baru
+        # ditambah lewat dashboard, belum pernah dicatat sekali pun) --
+        # satu-satunya kasus tersisa yang benar-benar tanpa pola apa pun
+        # utk dipinjam, garis datar mu tetap pilihan paling wajar.
+        last_date = pd.Timestamp.now().normalize() - pd.Timedelta(days=1)
+        qty_hist = []
     else:
         last_date = s["date"].max()
-
-    qty_hist = list(s["qty_sold"].astype(float).values)
+        qty_hist = list(s["qty_sold"].astype(float).values)
 
     # used_climatology: disiapkan untuk Minggu 3/T-19 (tampilkan status ke
     # pengguna kalau sistem sedang memakai cadangan klimatologi, bukan
@@ -118,14 +148,21 @@ def forecast_future(df, product_id, model_key=MODEL_TERBAIK, horizon=None):
     fx, used_climatology = weather.future_exogenous(
         last_date + pd.Timedelta(days=1), horizon)
 
-    if model is None or len(qty_hist) == 0:
-        # len(qty_hist) == 0: baru saja reset operasional, belum ada satu
-        # pun catatan asli -- build_feature_row() butuh minimal 1 elemen
-        # (s[0] dipakai saat riwayat lebih pendek dari lag/window). Pakai
-        # base demand datar sampai hari pertama tercatat, sama seperti
-        # jalur "model belum tersedia" yang sudah ada. Produk baru tanpa
-        # model .joblib juga otomatis lewat sini -- mu berasal dari input
-        # pemilik sendiri saat menambah produk (T-4), bukan karangan sistem.
+    # pakai_mu_datar (BEDA dari cold_start di atas -- itu status "ada data
+    # asli atau tidak" utk pesan UI, ini kondisi teknis "ada apa pun buat
+    # dipakai model atau tidak", bisa False walau cold_start=True kalau
+    # fallback opsi 2 di atas berhasil isi qty_hist dari riwayat lama):
+    # qty_hist masih bisa kosong (produk tanpa riwayat sama sekali) atau
+    # model belum tersedia sama sekali (.joblib tak ada).
+    pakai_mu_datar = model is None or len(qty_hist) == 0
+    if pakai_mu_datar:
+        # len(qty_hist) == 0: benar-benar tanpa riwayat apa pun (termasuk
+        # sintetis) -- build_feature_row() butuh minimal 1 elemen (s[0]
+        # dipakai saat riwayat lebih pendek dari lag/window). Pakai base
+        # demand datar sampai hari pertama tercatat, sama seperti jalur
+        # "model belum tersedia" yang sudah ada. Produk baru tanpa model
+        # .joblib juga otomatis lewat sini -- mu berasal dari input pemilik
+        # sendiri saat menambah produk (T-4), bukan karangan sistem.
         #
         # horizon (bukan HORIZON konstanta global) -- bug T-4 lama: panjang
         # array dulu selalu 7 walau horizon diminta 14/30.
@@ -156,4 +193,4 @@ def forecast_future(df, product_id, model_key=MODEL_TERBAIK, horizon=None):
     hist_cols["is_holiday"] = hist_cols.get("is_holiday", 0)
     history = hist_cols[["date", "qty_sold", "is_holiday"]].rename(
         columns={"qty_sold": "quantity_sold"})
-    return history, future, sigma
+    return history, future, sigma, cold_start

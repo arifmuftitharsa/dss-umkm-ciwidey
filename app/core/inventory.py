@@ -42,7 +42,7 @@ def material_demand_7d(df) -> pd.DataFrame:
     per_produk = {}
     sigma_produk = {}
     for pid in store.get_produk_dict():
-        _, fut, sig = forecast_future(df, pid)
+        _, fut, sig, _ = forecast_future(df, pid)
         per_produk[pid] = fut.set_index("date")["yhat"]
         sigma_produk[pid] = sig
 
