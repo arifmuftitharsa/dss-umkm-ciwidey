@@ -46,8 +46,23 @@ def render(df):
             "bukan keputusan harian.",
             "info")
 
-    hist, fut, _ = forecast_future(df, pid, MODEL_TERBAIK, horizon=horizon)
+    hist, fut, _, cold_start = forecast_future(df, pid, MODEL_TERBAIK, horizon=horizon)
     satuan = produk[pid]["satuan"]
+
+    # cold_start: belum ada catatan penjualan asli utk produk ini sejak
+    # reset operasional (atau produk baru tanpa riwayat) -- forecast di
+    # bawah pakai pola riwayat lama (opsi 2, keputusan Arif 13 Sept 2026)
+    # atau rata-rata dasar polos kalau riwayat lama pun tak ada, BUKAN hasil
+    # model dari data asli. Tanpa pesan ini pengguna bisa salah kira ini
+    # bug, padahal kondisi "menunggu data" yang memang disengaja (lihat
+    # core/forecasting.py).
+    if cold_start:
+        ui.action(
+            "Belum ada catatan penjualan asli untuk produk ini",
+            "Perkiraan di bawah memakai pola penjualan lama sementara, "
+            "bukan data asli. Catat penjualan hariannya di Manajemen & "
+            "Pengaturan supaya perkiraan makin akurat.",
+            "info")
 
     # round() bukan int() (truncate) -- temuan audit #4: int() selalu
     # membulatkan ke bawah, bias sistematis kecil-tapi-konsisten meremehkan

@@ -48,7 +48,7 @@ def render(df):
 
     total_unit = 0
     for pid in produk:
-        _, fut, _ = forecast_future(df, pid)
+        _, fut, _, _ = forecast_future(df, pid)
         total_unit += int(fut.yhat.sum())
 
     # --- KPI: bahasa pemilik. Sengaja TANPA angka akurasi/MAPE (T-19) --
@@ -59,12 +59,26 @@ def render(df):
         ui.kpi("Perkiraan Penjualan", f"{total_unit:,}".replace(",", "."),
                "total unit 7 hari ke depan")
     with c2:
-        # temuan audit #4: subtext "0 lainnya mulai menipis" berdampingan
-        # value "0" terasa redundan saat semua stok aman -- kondisikan
-        # pesannya, bukan selalu tampilkan hitungan waspada mentah.
-        sub_bahan = ("Semua stok aman" if len(kritis) == 0 and len(waspada) == 0
-                    else f"{len(waspada)} lainnya mulai menipis")
-        ui.kpi("Bahan Perlu Dibeli", f"{len(kritis)}", sub_bahan)
+        # Bug 2 (prompt-claude-code-fix-screenshot.md): angka utama dulu
+        # cuma len(kritis), sedangkan subtext selalu bahas waspada -- bisa
+        # tampil "0" berdampingan "1 lainnya mulai menipis", dua info
+        # saling bertentangan di kartu yang sama. Akar masalah: "Bahan
+        # Perlu Dibeli" tak konsisten definisinya dgn KPI nama sama di
+        # views/inventory.py (Stok & Pembelian), yang pakai
+        # inv["Perlu Order"] = status Kritis ATAU Waspada gabung (lihat
+        # core/inventory.py butuh_order). Disamakan di sini: angka utama
+        # jadi total kritis+waspada, subtext merinci komposisinya --
+        # angka dan teks sekarang selalu menjelaskan populasi yang SAMA.
+        perlu_beli = len(kritis) + len(waspada)
+        if perlu_beli == 0:
+            sub_bahan = "Semua stok aman"
+        elif len(kritis) == 0:
+            sub_bahan = f"{len(waspada)} mulai menipis"
+        elif len(waspada) == 0:
+            sub_bahan = f"{len(kritis)} mendesak"
+        else:
+            sub_bahan = f"{len(kritis)} mendesak, {len(waspada)} mulai menipis"
+        ui.kpi("Bahan Perlu Dibeli", f"{perlu_beli}", sub_bahan)
     with c3:
         ada_libur = _ada_libur_nasional(df, produk)
         ui.kpi("Hari Libur Nasional", "Ada" if ada_libur else "Tidak",
@@ -115,7 +129,7 @@ def render(df):
         (ui.tint(WARNA["primer"], .35), "Rentang kemungkinan"),
         ("#F4B400", "Hari libur / event"),
     ])
-    hist, fut, _ = forecast_future(df, pid_utama)
+    hist, fut, _, _ = forecast_future(df, pid_utama)
     st.plotly_chart(charts.forecast_chart(hist, fut, produk[pid_utama]["satuan"]),
                     use_container_width=True, config=NO_BAR)
     ui.petunjuk_geser("Bisa digeser untuk lihat rentang tanggal lain")
@@ -135,7 +149,7 @@ def render(df):
 
 def _ada_spike(df, produk: dict) -> bool:
     for pid in produk:
-        _, fut, _ = forecast_future(df, pid)
+        _, fut, _, _ = forecast_future(df, pid)
         if (fut.is_holiday.sum() > 0) or (fut.is_weekend.sum() > 0):
             return True
     return False
@@ -148,6 +162,6 @@ def _ada_libur_nasional(df, produk: dict) -> bool:
     cukup cek SATU produk, kalender sama untuk semua produk.
     """
     for pid in produk:
-        _, fut, _ = forecast_future(df, pid)
+        _, fut, _, _ = forecast_future(df, pid)
         return fut.is_holiday.sum() > 0
     return False

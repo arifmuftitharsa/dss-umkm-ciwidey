@@ -83,12 +83,23 @@ def render():
         mat = store.get_bom_matrix()
         # ganti header kode bahan -> nama agar mudah dibaca pemilik
         nama_bahan = store.get_bahan().set_index("id")["nama"].to_dict()
-        mat_show = mat.rename(columns=nama_bahan)
+        # Bug 1 (prompt-claude-code-fix-screenshot.md): kolom kode bahan
+        # sudah di-rename ke nama sejak awal, tapi BARIS (index = kode
+        # produk) tak pernah di-rename -- Tab Resep cuma tampilkan P001,
+        # P002, P003, beda dgn Tab Produk yang tampilkan nama. Pola
+        # perbaikan sama persis dgn kolom bahan di atas: rename utk
+        # tampilan, simpan mapping balik utk dikembalikan sebelum disimpan
+        # (get_bom_matrix()/save_bom_matrix() WAJIB index-nya tetap kode,
+        # bukan nama -- lihat data/store.py).
+        nama_produk = store.get_produk().set_index("id")["nama"].to_dict()
+        mat_show = mat.rename(columns=nama_bahan, index=nama_produk)
         edited_m = st.data_editor(mat_show, use_container_width=True, key="ed_bom")
         if st.button("💾 Simpan Resep", type="primary"):
-            # kembalikan nama kolom -> kode
-            inv = {v: k for k, v in nama_bahan.items()}
-            edited_m.columns = [inv.get(c, c) for c in edited_m.columns]
+            # kembalikan nama kolom -> kode, DAN nama baris -> kode
+            inv_bahan = {v: k for k, v in nama_bahan.items()}
+            inv_produk = {v: k for k, v in nama_produk.items()}
+            edited_m.columns = [inv_bahan.get(c, c) for c in edited_m.columns]
+            edited_m.index = [inv_produk.get(i, i) for i in edited_m.index]
             store.save_bom_matrix(edited_m)
             st.success("Resep (BOM) tersimpan.")
             st.rerun()
