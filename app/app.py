@@ -96,6 +96,6 @@ nav.run()
 with st.sidebar:
     st.markdown(
         "<div class='teks-atribusi-tim'>"
-        "Aplikasi ini dikembangkan oleh tim UPERAISAL</div>",
+        "Aplikasi ini dikembangkan oleh tim UPERAISAL - Universitas Pertamina</div>",
         unsafe_allow_html=True,
     )
