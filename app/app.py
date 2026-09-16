@@ -72,10 +72,30 @@ with st.sidebar:
     st.markdown(
         f"<div style='font-family:Source Serif 4,serif;font-size:1.25rem;"
         f"font-weight:700;color:{WARNA['teks']};line-height:1.2;margin-top:.5rem;'>{APP_NAME}</div>"
-        f"<div style='color:{WARNA['teks_lemah']};font-size:.8rem;margin-bottom:1rem;'>"
+        f"<div class='teks-muted-custom' style='color:{WARNA['teks_lemah']};"
+        f"font-size:.8rem;margin-bottom:1rem;'>"
         "Bantu UMKM Kelola Stok</div>"
         "<hr style='margin:0 0 1rem;'>",
         unsafe_allow_html=True,
     )
 
 nav.run()
+
+# --- Atribusi tim -- teks WAJIB persis (permintaan Pak Herry, jangan
+# diparafrase/ditambah embel-embel). Ditaruh SEKALI di sini (bukan di
+# blok sidebar atas) supaya render di BAWAH nav.run() secara DOM order --
+# TAK LAGI relevan untuk posisi visual sejak revisi 16 Sept 2026 (posisi
+# sekarang position:absolute ke dasar sidebar via class di bawah, bebas
+# dari urutan DOM), tapi ditinggal di sini karena tetap tempat paling
+# logis (dekat definisi nav, bukan bercampur blok tagline di atas).
+# class="teks-atribusi-tim" (BUKAN "teks-muted-custom" yang dipakai
+# tagline) -- sengaja dipisah (lihat components/ui.py) supaya ukuran
+# atribusi (1rem) independen, tak ikut kalau tagline (.8rem) diubah lagi
+# nanti atau sebaliknya. Style inline dihapus (font-size/position semua
+# sekarang di CSS class), cuma teks mentahnya yang tersisa di sini.
+with st.sidebar:
+    st.markdown(
+        "<div class='teks-atribusi-tim'>"
+        "Aplikasi ini dikembangkan oleh tim UPERAISAL</div>",
+        unsafe_allow_html=True,
+    )

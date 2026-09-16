@@ -105,9 +105,47 @@ h2 {{ margin:0 0 .35rem !important; padding:0 !important; }}
    4.5rem (72px) >= 60px + buffer, aman di semua breakpoint. */
 .block-container {{ padding-top:4.5rem; max-width:1160px; }}
 
-/* sidebar -- surface (beda halus dari bg putih konten), teks dipaksa gelap & terbaca */
+/* sidebar -- surface (beda halus dari bg putih konten). Rule "*" di bawah
+   DIWARISI dari kode Felix asli (initial commit) -- diinvestigasi (temuan
+   audit atribusi tim, 16 Sept 2026): dibuktikan lewat inspeksi computed
+   style REDUNDAN untuk link navigasi (st.navigation/Streamlit sendiri
+   SUDAH set warnanya lewat .streamlit/config.toml, sama persis dgn/tanpa
+   rule ini), dan MERUSAK teks custom yang sengaja muted (tagline,
+   atribusi tim) -- keduanya jadi ikut gelap padahal maksudnya abu. Tetap
+   DIPERTAHANKAN (bukan dihapus, keputusan Arif -- terlalu berisiko hapus
+   total tanpa tahu pasti elemen sidebar Streamlit versi depan), tapi
+   class .teks-muted-custom di bawah OVERRIDE BALIK khusus utk teks yang
+   memang custom-muted, tanpa mengubah warna elemen sidebar lain. */
 section[data-testid="stSidebar"] {{ background:var(--surface); border-right:1px solid var(--garis); }}
 section[data-testid="stSidebar"] * {{ color:var(--teks) !important; }}
+section[data-testid="stSidebar"] .teks-muted-custom {{ color:var(--teks-lemah) !important; }}
+
+/* atribusi tim -- class TERPISAH dari .teks-muted-custom (revisi 16 Sept
+   2026, permintaan eksplisit: ukuran atribusi tak lagi ikut tagline).
+   font-size 1rem (dinaikkan dari .8rem semula) -- MASIH di bawah ukuran
+   nav link/judul UPStock (keduanya 16-20px 700, ini cuma 16px 400, tanpa
+   bold), warna tetap teks_lemah spt sebelumnya, cuma ukuran yg berubah.
+
+   Posisi ke dasar sidebar: position:absolute TERBUKTI SALAH lewat
+   pengujian langsung (bukan asumsi) -- Streamlit bungkus TIAP elemen
+   markdown dalam wrapper sendiri ("stElementContainer", position:relative,
+   tinggi 0px mengikuti kontennya), jadi absolute malah terikat ke wrapper
+   0px itu, BUKAN ke tinggi penuh sidebar seperti dikira semula (walau
+   stSidebarContent sendiri memang position:relative setinggi sidebar,
+   wrapper stElementContainer di antaranya "mencuri" jadi containing block
+   duluan). Dipakai position:fixed sebagai gantinya -- acuannya viewport
+   browser langsung, bukan ancestor DOM manapun, jadi kebal dari lapisan
+   wrapper internal Streamlit. Sidebar default Streamlit terkunci di
+   left:0, lebar 300px -- left:20px (menyamai offset kiri tagline yang
+   sudah align benar) + width:260px (300px - 2x20px padding) supaya teks
+   tak melebar sampai nabrak tepi kanan sidebar. TRADE-OFF disadari: kalau
+   user geser lebar sidebar manual (fitur drag Streamlit), lebar tetap
+   260px (tak ikut menyesuaikan) -- di luar scope perbaikan kecil ini,
+   catat sebagai batasan yang diketahui. */
+section[data-testid="stSidebar"] .teks-atribusi-tim {{
+  color:var(--teks-lemah) !important; font-size:1rem; font-weight:400;
+  position:fixed; left:20px; width:260px; bottom:1rem;
+}}
 
 /* KPI card -- border kiri berwarna (konsisten dgn action-card), TANPA shadow/radius
    besar seragam (hindari pola "SaaS-card kit"). Label sentence case, bukan ALL-CAPS. */
