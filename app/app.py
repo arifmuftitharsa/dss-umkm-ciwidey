@@ -7,6 +7,7 @@ Studi kasus: UMKM Olahan Stroberi, Desa Wisata Alamendah, Ciwidey.
 Jalankan:  streamlit run app.py
 """
 import streamlit as st
+import streamlit.components.v1 as components
 
 from components import ui
 from data.synthetic import generate
@@ -99,3 +100,78 @@ with st.sidebar:
         "Aplikasi ini dikembangkan oleh tim UPERAISAL - Universitas Pertamina</div>",
         unsafe_allow_html=True,
     )
+
+# --- Sinkronkan posisi atribusi ke lebar sidebar SUNGGUHAN (revisi 16 Sept
+# 2026): left/width di components/ui.py tadinya hardcoded 20px/260px, cocok
+# utk lebar default Streamlit (300px) tapi TAK ikut kalau pengguna
+# drag-resize sidebar manual (fitur bawaan Streamlit, bukan sesuatu yang
+# bisa dibaca lewat CSS murni -- dicek langsung: .streamlit/config.toml
+# cuma atur warna tema, nol properti lebar sidebar). st.markdown()
+# unsafe_allow_html TAK bisa eksekusi <script> (browser tak jalankan script
+# yang disuntik lewat innerHTML) -- WAJIB st.components.v1.html(), yang
+# render di iframe SATU origin dgn halaman induk, jadi script di dalamnya
+# bisa akses window.parent.document utk baca/ubah elemen sidebar di luar
+# iframe (trik umum utk skenario ini, bukan cara resmi Streamlit).
+#
+# ResizeObserver dipasang ke section[stSidebar] itu sendiri -- terpanggil
+# ulang OTOMATIS tiap lebar berubah (termasuk drag-resize manual), bukan
+# cuma sekali saat load. style.left/width diterapkan LANGSUNG ke elemen
+# (bukan CSS custom property) -- inline style otomatis menang lawan rule
+# class di ui.py TANPA perlu !important tambahan (CSS existing sengaja
+# tak pasang !important di left/width, cuma di color, persis utk ini).
+#
+# Fallback WAJIB (instruksi eksplisit): kalau ResizeObserver tak tersedia
+# (browser sangat lama) atau iframe gagal akses parent (mis. browser
+# blokir cross-frame walau same-origin, kasus langka), blok try/except di
+# JS diam-diam skip -- elemen TETAP tampil pakai left:20px/width:260px
+# hardcoded dari CSS ui.py (tak pernah dihapus, cuma dikalahkan inline
+# style kalau JS berhasil), jadi teks TAK PERNAH hilang.
+components.html(
+    """
+    <script>
+    (function() {
+      function sync() {
+        try {
+          var doc = window.parent.document;
+          var sidebar = doc.querySelector('section[data-testid="stSidebar"]');
+          var teks = doc.querySelector('.teks-atribusi-tim');
+          if (!sidebar || !teks) return;
+          var r = sidebar.getBoundingClientRect();
+          teks.style.left = (r.left + 20) + 'px';
+          teks.style.width = (r.width - 40) + 'px';
+        } catch (e) {
+          // Fallback diam-diam -- CSS hardcoded ui.py tetap berlaku.
+        }
+      }
+      function mulai() {
+        var doc = window.parent.document;
+        var sidebar = doc.querySelector('section[data-testid="stSidebar"]');
+        if (!sidebar) { setTimeout(mulai, 300); return; }  // sidebar blm ke-render
+        sync();
+        if (typeof ResizeObserver !== 'undefined') {
+          new ResizeObserver(sync).observe(sidebar);
+        }
+        // ResizeObserver CUMA pantau perubahan lebar/tinggi -- collapse/
+        // expand sidebar (tombol panah, bukan drag-resize) Streamlit
+        // gerakkan lewat transform/left, lebar TAK berubah, jadi
+        // ResizeObserver TAK terpanggil ulang -- "left" bisa nyangkut ke
+        // posisi lama (ditemukan lewat pengujian langsung, bukan asumsi).
+        // transitionend nutup celah itu: terpanggil begitu animasi
+        // collapse/expand selesai, sync() ambil posisi FINAL yang benar.
+        sidebar.addEventListener('transitionend', sync);
+        // Jaring pengaman kedua (ditemukan lewat pengujian langsung):
+        // ResizeObserver TERBUKTI bisa berhenti bereaksi setelah 1x
+        // trigger di sebagian kondisi browser/iframe (observer lepas atau
+        // konteksnya terganggu) -- transitionend saja tak cukup nutup
+        // celah itu. Polling 500ms ringan (cuma 2x getBoundingClientRect,
+        // biaya nyaris nol) sebagai jaring PALING ROBUST -- jamin
+        // eventual-consistency terlepas dari mekanisme resize apa pun
+        // yang dipakai Streamlit versi berapa pun ke depan.
+        setInterval(sync, 500);
+      }
+      mulai();
+    })();
+    </script>
+    """,
+    height=0,
+)
