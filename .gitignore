@@ -16,3 +16,6 @@ app/data/dss_umkm.db
 # Config tooling development lokal (browser-preview launch config) -- path
 # spesifik environment lokal, tak relevan untuk siapa pun yang clone repo ini.
 .claude/
+
+# Backup database lokal (salinan manual / sebelum uji) -- berisi data, jangan masuk repo publik.
+app/data/*.db
