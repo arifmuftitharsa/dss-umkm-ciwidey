@@ -19,3 +19,8 @@ app/data/dss_umkm.db
 
 # Backup database lokal (salinan manual / sebelum uji) -- berisi data, jangan masuk repo publik.
 app/data/*.db
+
+# File kerja pribadi (evidence, screenshot manual book, catatan) -- backup di OneDrive, bukan repo publik.
+evidence/
+manual-book-screenshots/
+notes/
